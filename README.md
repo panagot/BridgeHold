@@ -14,7 +14,6 @@
 **Node.js 20+**
 
 ```bash
-cd web
 cp .env.example .env.local
 # Add TORQUE_INGEST_API_KEY from Torque (developer tools or MCP create_api_key)
 npm install
@@ -25,13 +24,11 @@ Open [http://127.0.0.1:3000](http://127.0.0.1:3000).
 
 ## Deploy on Vercel
 
-The Next.js app lives in **`web/`**, not the repository root. If **Root Directory** is left as `.`, the deployment has no real app and you can see **`404: NOT_FOUND`** on every path.
+The Next.js app is at the **repository root** (so the default Vercel **Root Directory** `.` is correct). Connect [panagot/BridgeHold](https://github.com/panagot/BridgeHold), use the **Next.js** preset, and deploy.
 
-1. Vercel → your project → **Settings** → **General** → **Root Directory** → set to **`web`** → Save.
-2. **Redeploy** the latest deployment (or push a new commit).
-3. Under **Settings → Environment Variables**, add the same keys as in `web/.env.example` (at least `TORQUE_INGEST_API_KEY` if you use live ingest).
+If you previously set **Root Directory** to `web`, clear it back to **`.`** (or leave blank) and redeploy — otherwise Vercel will look for an app that is no longer under `web/`.
 
-Framework should stay **Next.js**; build command **`npm run build`** and output directory are detected automatically from `web/`.
+Under **Settings → Environment Variables**, add the same keys as in `.env.example` (at least `TORQUE_INGEST_API_KEY` if you use live ingest).
 
 | Route | Purpose |
 |-------|---------|
