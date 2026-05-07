@@ -3,28 +3,27 @@ import Link from "next/link";
 const points = [
   {
     title: "Built-in growth loop",
-    body: "Bridge + daily hold snapshots map directly to Torque leaderboards, raffles, and rebates — retention, not one-off airdrops.",
+    body: "Bridge plus daily hold snapshots map directly to Torque leaderboards, raffles, and rebates — retention, not one-off airdrops.",
   },
   {
     title: "Live custom events",
-    body: "Every bridge and indexer tick can POST to Torque’s ingester so participation is measurable, not mocked.",
+    body: "Every bridge and indexer tick can POST to Torque’s ingester so participation is measurable end to end.",
   },
   {
     title: "Nine ready-made scenarios",
-    body: "Load L2, stablecoin, micro-retail, whale, decay, Avalanche, Sui, BNB, or steady paths — then run the live demo’s seed script for an instant crowded board.",
+    body: "Load L2, stablecoin, micro-retail, whale, decay, Avalanche, Sui, BNB, or steady paths — then use the live demo seed script to populate a multi-wallet board quickly.",
   },
 ] as const;
 
-export function JudgeStrip() {
+export function ProductHighlights() {
   return (
     <section className="border-t border-zinc-800/90 bg-[#080d16] px-4 py-14 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <h2 className="text-lg font-semibold text-white">Why this fits the Torque track</h2>
+        <h2 className="text-lg font-semibold text-white">Why teams use Torque here</h2>
         <p className="mt-2 max-w-3xl text-sm text-zinc-400">
-          Most hackathon apps ship code without distribution. BridgeHold is a{" "}
-          <strong className="font-medium text-zinc-200">retention primitive</strong>: liquidity that stays is liquidity
-          you can reward — the same problem space Torque solves for Raydium-class teams with sybil-aware campaigns and ROI
-          analytics.
+          BridgeHold is a <strong className="font-medium text-zinc-200">retention primitive</strong>: liquidity that
+          stays is liquidity you can reward. Torque supplies sybil-aware campaigns, leaderboards, and analytics on top of
+          consistent custom events from your bridge and indexer.
         </p>
         <ul className="mt-8 grid gap-4 md:grid-cols-3">
           {points.map((p) => (
@@ -44,6 +43,10 @@ export function JudgeStrip() {
           {" · "}
           <Link href="/demo" className="font-medium text-teal-400 hover:underline">
             Run live demo →
+          </Link>
+          {" · "}
+          <Link href="/leaderboard" className="font-medium text-teal-400 hover:underline">
+            Open leaderboard →
           </Link>
         </p>
       </div>

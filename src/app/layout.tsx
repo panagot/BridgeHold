@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "BridgeHold × Torque · Frontier",
+    default: "BridgeHold × Torque",
     template: "%s · BridgeHold",
   },
   description:

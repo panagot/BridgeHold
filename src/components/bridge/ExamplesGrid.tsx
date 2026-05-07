@@ -1,15 +1,25 @@
+"use client";
+
 import Link from "next/link";
 
+import { Hint } from "@/components/Tooltip";
 import { SCENARIOS, shortAddr } from "@/lib/bridge/constants";
 
 export function ExamplesGrid() {
   return (
     <>
-      <h1 className="text-3xl font-semibold tracking-tight text-white">Example scenarios</h1>
+      <h1 className="inline-flex flex-wrap items-center gap-1 text-3xl font-semibold tracking-tight text-white">
+        Example scenarios
+        <Hint title="Why nine presets">
+          Each row is a believable persona: chain route, notional, min-hold, and optional decay. Unique wallets mean you
+          can load several into the simulator back-to-back and show a real multi-wallet board — no manual re-typing.
+        </Hint>
+      </h1>
       <p className="mt-3 max-w-2xl text-sm text-zinc-400 sm:text-base">
-        Presets with realistic copy for decks or demo videos. Each opens the simulator with fields pre-filled so you can
-        run a tight, repeatable story for judges — different wallets per scenario help show multi-participant boards.
+        Each preset opens the simulator with matching fields so you can exercise the same custom-event shape your
+        production Torque campaigns expect — without re-entering parameters by hand.
       </p>
+
       <div className="mt-10 grid gap-5 lg:grid-cols-3">
         {SCENARIOS.map((s) => (
           <article
@@ -29,13 +39,25 @@ export function ExamplesGrid() {
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt>Bridge / min</dt>
+                <dt className="inline-flex items-center gap-0.5 text-zinc-500">
+                  Bridge / min
+                  <Hint title="Units">
+                    Simulated USDC notionals. <span className="font-mono text-cyan-200">min</span> is the hold threshold
+                    for <span className="font-mono text-cyan-200">meetsThreshold</span> on each snapshot.
+                  </Hint>
+                </dt>
                 <dd>
                   {s.amount} / {s.minHold}
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt>Decay</dt>
+                <dt className="inline-flex items-center gap-0.5 text-zinc-500">
+                  Decay
+                  <Hint title="Daily decay">
+                    Percent trimmed from balance before each indexer tick. 0% = perfect holder; higher % simulates fees
+                    or gradual exits.
+                  </Hint>
+                </dt>
                 <dd>{s.decay}% / day</dd>
               </div>
               <div className="truncate text-zinc-500" title={s.wallet}>
@@ -53,10 +75,15 @@ export function ExamplesGrid() {
       </div>
 
       <section className="mt-16 rounded-2xl border border-zinc-700/80 bg-slate-900/50 p-6 sm:p-8">
-        <h2 className="text-xl font-semibold text-white">More playbooks (mix &amp; match)</h2>
+        <h2 className="inline-flex flex-wrap items-center gap-1 text-xl font-semibold text-white">
+          More playbooks (mix &amp; match)
+          <Hint title="Torque-side ideas">
+            These are campaign designs on top of the same two event types (bridge + daily snapshot). Your SQL in Torque
+            chooses winners; this app only emits consistent fields.
+          </Hint>
+        </h2>
         <p className="mt-2 text-sm text-zinc-400">
-          Ideas you can stage in Torque on top of the same events — no extra code paths (pairs with the {SCENARIOS.length}{" "}
-        simulator presets above).
+          Pair with the {SCENARIOS.length} presets above — same events, different incentive logic in Torque.
         </p>
         <ul className="mt-6 grid gap-4 sm:grid-cols-2">
           {[

@@ -5,9 +5,9 @@
 ## Features
 
 - **Nine preset scenarios** (Arbitrum, Base, Ethereum, Optimism, Polygon, Avalanche, Sui, BNB Chain, micro-retail, etc.) — each opens the simulator with fields filled.
-- **Three live demo scripts** — classic streak, decay week, twin wallets (parallel leaderboard).
-- **Simulator** — quick-load chips, batch indexer ticks (1–30), copy wallet, reset session, ingest status banner.
-- **Six extra playbooks** on the Examples page for campaign ideas (SQL / incentive design).
+- **Four live demo scripts** — classic streak, decay week, twin wallets (isolated addresses), leaderboard seed.
+- **Simulator** — quick-load presets, batch ticks (1–30), preset flow shortcut, copy wallet, reset session, ingest status banner, inline help hints.
+- **Ten mix-and-match playbooks** on the Examples page (SQL / incentive design).
 
 ## Quick start
 
@@ -33,10 +33,11 @@ Under **Settings → Environment Variables**, add the same keys as in `.env.exam
 | Route | Purpose |
 |-------|---------|
 | `/` | Overview + links |
-| `/how-it-works` | Flow + Torque primitives + pitch ideas |
+| `/how-it-works` | Flow + Torque primitives + campaign concepts |
 | `/examples` | Nine presets + ten mix-and-match playbooks |
 | `/demo` | Automated multi-script demo + log |
 | `/simulator` | Full manual control + batch ticks |
+| `/leaderboard` | Rankings table + aggregate stats (bridged volume, streaks, routes) |
 
 ## Environment
 

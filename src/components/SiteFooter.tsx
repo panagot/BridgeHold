@@ -6,7 +6,7 @@ export function SiteFooter() {
           <div>
             <p className="font-semibold text-white">BridgeHold</p>
             <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-              Frontier × Torque: bridge-and-hold retention with measurable custom events, leaderboards, and raffles.
+              Bridge-and-hold retention with measurable custom events, leaderboards, and raffles on Torque.
             </p>
           </div>
           <div>
@@ -30,6 +30,11 @@ export function SiteFooter() {
               <li>
                 <a className="text-zinc-300 hover:text-cyan-300 hover:underline" href="/simulator">
                   Simulator
+                </a>
+              </li>
+              <li>
+                <a className="text-zinc-300 hover:text-cyan-300 hover:underline" href="/leaderboard">
+                  Leaderboard
                 </a>
               </li>
             </ul>

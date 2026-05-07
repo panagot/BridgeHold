@@ -1,3 +1,5 @@
+import type { LeaderboardOverviewRow, LeaderboardStats } from "./bridge/types";
+
 export type HoldSnapshot = {
   dayIndex: number;
   meetsThreshold: boolean;
@@ -90,18 +92,78 @@ export function leaderboard(): {
   qualifyingDays: number;
   balance: number;
 }[] {
-  return allParticipants()
-    .filter((p) => p.bridgedAmount > 0)
-    .map((p) => {
-      const qualifyingDays = p.snapshots.filter((s) => s.meetsThreshold).length;
-      const streak =
-        p.snapshots.length > 0 ? p.snapshots[p.snapshots.length - 1].streakAfter : 0;
-      return {
-        wallet: p.wallet,
-        streak,
-        qualifyingDays,
-        balance: p.currentBalance,
-      };
-    })
-    .sort((a, b) => b.streak - a.streak || b.qualifyingDays - a.qualifyingDays);
+  return leaderboardOverview().leaderboard;
+}
+
+function routeLabel(p: Participant): string {
+  return `${p.sourceChain} → ${p.destChain}`;
+}
+
+/**
+ * Leaderboard rows, minimal board slice, and aggregate stats for the leaderboard page / API.
+ */
+export function leaderboardOverview(): {
+  leaderboard: { wallet: string; streak: number; qualifyingDays: number; balance: number }[];
+  stats: LeaderboardStats;
+  rows: LeaderboardOverviewRow[];
+} {
+  const eligible = allParticipants().filter((p) => p.bridgedAmount > 0);
+
+  const unsorted: Omit<LeaderboardOverviewRow, "rank">[] = eligible.map((p) => {
+    const qualifyingDays = p.snapshots.filter((s) => s.meetsThreshold).length;
+    const streak = p.snapshots.length > 0 ? p.snapshots[p.snapshots.length - 1].streakAfter : 0;
+    return {
+      wallet: p.wallet,
+      streak,
+      qualifyingDays,
+      balance: p.currentBalance,
+      bridgedAmount: p.bridgedAmount,
+      minHold: p.minHold,
+      sourceChain: p.sourceChain,
+      destChain: p.destChain,
+      snapshotCount: p.snapshots.length,
+      meetsThreshold: p.currentBalance >= p.minHold,
+    };
+  });
+
+  unsorted.sort((a, b) => b.streak - a.streak || b.qualifyingDays - a.qualifyingDays || b.balance - a.balance);
+
+  const rows: LeaderboardOverviewRow[] = unsorted.map((r, i) => ({ ...r, rank: i + 1 }));
+
+  const leaderboard = rows.map(({ rank: _r, bridgedAmount: _b, minHold: _m, sourceChain: _s, destChain: _d, snapshotCount: _sn, meetsThreshold: _mt, ...rest }) => rest);
+
+  const routeCounts = new Map<string, number>();
+  for (const p of eligible) {
+    const k = routeLabel(p);
+    routeCounts.set(k, (routeCounts.get(k) ?? 0) + 1);
+  }
+  let topRoute: string | null = null;
+  let topRouteCount = 0;
+  for (const [label, count] of routeCounts) {
+    if (count > topRouteCount) {
+      topRouteCount = count;
+      topRoute = label;
+    }
+  }
+
+  const n = rows.length;
+  const totalBridgedVolume = rows.reduce((s, r) => s + r.bridgedAmount, 0);
+  const totalBalanceOnDest = rows.reduce((s, r) => s + r.balance, 0);
+  const sumQualifyingSnapshots = rows.reduce((s, r) => s + r.qualifyingDays, 0);
+  const sumStreak = rows.reduce((s, r) => s + r.streak, 0);
+  const maxStreak = n ? Math.max(...rows.map((r) => r.streak)) : 0;
+
+  const stats: LeaderboardStats = {
+    participantCount: n,
+    totalBridgedVolume,
+    totalBalanceOnDest,
+    sumQualifyingSnapshots,
+    avgStreak: n ? Math.round((sumStreak / n) * 10) / 10 : 0,
+    maxStreak,
+    uniqueRoutes: routeCounts.size,
+    topRoute,
+    topRouteCount,
+  };
+
+  return { leaderboard, stats, rows };
 }

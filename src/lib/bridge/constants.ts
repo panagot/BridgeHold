@@ -32,7 +32,7 @@ export const SCENARIOS: Scenario[] = [
     title: "High-ticket bridge",
     badge: "VIP tier",
     narrative:
-      "Large 8,000 USDC bridge from Ethereum with a 500 min-hold. Use this when pitching a separate VIP leaderboard or distributor tier so retail holders still have parallel prizes.",
+      "Large 8,000 USDC bridge from Ethereum with a 500 min-hold. Use for a separate VIP leaderboard or distributor tier so retail holders still have parallel prizes.",
     wallet: "9WzDXwBbmkg8ZTbNMqUxvHBRAbtXtd11vf7jikQTyrtD",
     minHold: 500,
     amount: 8000,
@@ -84,7 +84,7 @@ export const SCENARIOS: Scenario[] = [
     title: "Avalanche round-trip",
     badge: "Subnet story",
     narrative:
-      "1,400 USDC from Avalanche C-Chain with a 90 min-hold. Use when pitching subnet or gaming liquidity that lands on Solana but originates in the Avalanche ecosystem.",
+      "1,400 USDC from Avalanche C-Chain with a 90 min-hold. Fits subnet or gaming liquidity that lands on Solana but originates in the Avalanche ecosystem.",
     wallet: "HpMahFkKMEwWddNfkXLPDSHDCPzaGyNTMfL8koBACtED",
     minHold: 90,
     amount: 1400,
@@ -97,7 +97,7 @@ export const SCENARIOS: Scenario[] = [
     title: "Sui parallel lane",
     badge: "Move VM",
     narrative:
-      "720 USDC from Sui — shorter finality story for judges who care about object-centric wallets. 75 min-hold; 3% decay stresses fee-heavy trading venues.",
+      "720 USDC from Sui with a 75 min-hold — useful when messaging fast finality and object-centric wallets. 3% decay models fee-heavy trading venues.",
     wallet: "JqNvhBPLYr3gydvsvEgLYHqq3j7nM4n7pK3kYhYvYwXk",
     minHold: 75,
     amount: 720,
@@ -120,9 +120,12 @@ export const SCENARIOS: Scenario[] = [
   },
 ];
 
+/** Primary wallet for Classic streak + Decay week scripts (shared in-memory demo store). */
 export const DEMO_WALLET = "SimAutoDemo7VFJsSjSnF7xvqZJoWqVGRDgL9MxXYWHkp";
-/** Second wallet for multi-actor demo scripts */
-export const DEMO_WALLET_B = "FsNvhBPLYr3gydvsvEgLYHqq3j7nM4n7pK3kYhYvYwXh";
+/** Whale side of Twin script — separate from DEMO_WALLET so Twin never clashes with Classic/Decay. */
+export const DEMO_WALLET_TWIN_WHALE = "UmNvhBPLYr3gydvsvEgLYHqq3j7nM4n7pK3kYhYvYwXT";
+/** Retail side of Twin script */
+export const DEMO_WALLET_TWIN_RETAIL = "VmNvhBPLYr3gydvsvEgLYHqq3j7nM4n7pK3kYhYvYwXT";
 
 export const field =
   "mt-1 w-full rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] outline-none placeholder:text-zinc-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30";

@@ -45,8 +45,8 @@ export function TorqueStatusBanner() {
       <p className="font-semibold text-amber-200">Local-only mode</p>
       <p className="mt-1 text-zinc-400">
         Set <span className="font-mono text-zinc-300">TORQUE_INGEST_API_KEY</span> in{" "}
-        <span className="font-mono text-zinc-300">.env.local</span> so bridges and indexer ticks hit
-        Torque — required for judges to verify live <span className="text-zinc-300">custom_events</span>.
+        <span className="font-mono text-zinc-300">.env.local</span> so bridges and indexer ticks post live{" "}
+        <span className="text-zinc-300">custom_events</span> to your Torque project.
       </p>
     </div>
   );

@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
-  { href: "/how-it-works", label: "How it works" },
-  { href: "/examples", label: "Examples" },
-  { href: "/demo", label: "Live demo" },
-  { href: "/simulator", label: "Simulator" },
+  { href: "/how-it-works", label: "How it works", title: "Bridge → snapshot → Torque campaign loop" },
+  { href: "/examples", label: "Examples", title: "Nine presets + ten Torque playbooks" },
+  { href: "/demo", label: "Live demo", title: "Automated scripts hitting the same APIs as the simulator" },
+  { href: "/simulator", label: "Simulator", title: "Manual controls, presets, batch ticks, ingest" },
+  { href: "/leaderboard", label: "Leaderboard", title: "Rankings and aggregate stats for bridged wallets" },
 ] as const;
 
 export function Navbar() {
@@ -31,6 +32,7 @@ export function Navbar() {
               <Link
                 key={l.href}
                 href={l.href}
+                title={l.title}
                 className={`rounded-md px-2 py-1.5 transition-colors sm:px-3 ${
                   active
                     ? "bg-white/10 font-medium text-white"

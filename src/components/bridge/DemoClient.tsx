@@ -2,34 +2,45 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { DEMO_WALLET, DEMO_WALLET_B, SCENARIOS, shortAddr } from "@/lib/bridge/constants";
+import { Hint } from "@/components/Tooltip";
+import {
+  DEMO_WALLET,
+  DEMO_WALLET_TWIN_RETAIL,
+  DEMO_WALLET_TWIN_WHALE,
+  SCENARIOS,
+  shortAddr,
+} from "@/lib/bridge/constants";
 import { apiAdvance, apiBalance, apiBridge, apiRegister } from "@/lib/bridge/api";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 type ScriptId = "classic" | "decay" | "twin" | "seed";
 
-const SCRIPTS: { id: ScriptId; label: string; blurb: string }[] = [
+const SCRIPTS: { id: ScriptId; label: string; blurb: string; hint: string }[] = [
   {
     id: "classic",
     label: "Classic streak",
-    blurb: "Bridge → 4 good days → dump below min → streak break → recover (original narrative).",
+    blurb: "Bridge 1.2k → four clean days → dump under min → streak resets → top up and recover.",
+    hint: "Full streak lifecycle on one wallet. Uses the primary demo address only — use Reset wallet in the simulator between runs if you need a clean state.",
   },
   {
     id: "decay",
     label: "Decay week",
-    blurb: "7 indexer ticks with 4% daily decay from a 500 balance; watch streak fight gravity.",
+    blurb: "500 USDC, min-hold 80, then seven ticks with 4% balance decay before each snapshot.",
+    hint: "Shows how fee drag or slow exits compress streaks. Same primary wallet as Classic; run Seed or Reset if order matters.",
   },
   {
     id: "twin",
     label: "Twin wallets",
-    blurb: "Two actors bridge different sizes; both run parallel day ticks — great for a populated leaderboard.",
+    blurb: "Whale vs retail bridges in parallel; three shared day ticks — two streaks on the board at once.",
+    hint: "Uses two wallets that are not the Classic/Decay wallet, so you can run Twin after other scripts without overwriting their state.",
   },
   {
     id: "seed",
     label: "Leaderboard seed",
     blurb:
-      "Three preset personas (steady bridger, L2 power user, micro retail) register, bridge, and each get one indexer tick — instant board for screen recordings.",
+      "Steady bridger, L2 power user, micro retail: each registers, bridges, gets one tick — fills a multi-wallet leaderboard quickly.",
+    hint: "Uses the same three wallets as the Examples presets (steady, L2 power user, micro retail).",
   },
 ];
 
@@ -157,8 +168,8 @@ export function DemoClient() {
   };
 
   const runTwin = async () => {
-    const a = DEMO_WALLET;
-    const b = DEMO_WALLET_B;
+    const a = DEMO_WALLET_TWIN_WHALE;
+    const b = DEMO_WALLET_TWIN_RETAIL;
     const steps = 7;
     let n = 0;
     const tick = async () => {
@@ -259,10 +270,16 @@ export function DemoClient() {
 
   return (
     <>
-      <h1 className="text-3xl font-semibold tracking-tight text-white">Live demo simulation</h1>
+      <h1 className="inline-flex items-center gap-1 text-3xl font-semibold tracking-tight text-white">
+        Live demo simulation
+        <Hint title="What this is">
+          Fully automated calls to the same Next.js API routes as the simulator.           With <code className="text-cyan-300">TORQUE_INGEST_API_KEY</code> set, each step can emit the same Torque
+          custom events as production. Use the simulator to inspect snapshots and leaderboard rows afterward.
+        </Hint>
+      </h1>
       <p className="mt-3 max-w-3xl text-sm text-zinc-400 sm:text-base">
-        Pick a script below. Each run hits the same API routes as the simulator (register, bridge, advance-day, balance)
-        so Torque ingest sees identical payloads when your API key is set.
+        Pick a script, then <strong className="font-medium text-zinc-300">Run</strong>. Same payloads as manual simulator
+        actions — suitable for repeatable demos and QA.
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -278,7 +295,12 @@ export function DemoClient() {
                 : "border-zinc-700 bg-slate-900/60 hover:border-zinc-600"
             } disabled:opacity-50`}
           >
-            <span className="font-semibold text-white">{s.label}</span>
+            <span className="flex items-start justify-between gap-1">
+              <span className="font-semibold text-white">{s.label}</span>
+              <Hint title={`${s.label} script`}>
+                <span className="font-normal">{s.hint}</span>
+              </Hint>
+            </span>
             <span className="mt-2 block text-xs leading-relaxed text-zinc-400">{s.blurb}</span>
           </button>
         ))}
@@ -287,7 +309,10 @@ export function DemoClient() {
       {progress.total > 0 ? (
         <div className="mt-6">
           <div className="mb-1 flex justify-between text-xs text-zinc-500">
-            <span>Progress</span>
+            <span className="inline-flex items-center gap-1">
+              Progress
+              <Hint title="Progress bar">Steps mirror API calls (register, bridge, tick, balance edits). Abort finishes the current step safely.</Hint>
+            </span>
             <span>
               {progress.step} / {progress.total} ({pct}%)
             </span>
@@ -303,7 +328,10 @@ export function DemoClient() {
 
       <div className="mt-6 rounded-2xl border border-zinc-700/80 bg-zinc-950 p-4 font-mono text-xs shadow-inner">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-700/80 pb-3">
-          <span className="font-medium text-zinc-400">demo.log</span>
+          <span className="inline-flex items-center gap-1 font-medium text-zinc-400">
+            demo.log
+            <Hint title="Event log">Timestamped API steps for auditing what ran in order.</Hint>
+          </span>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -355,7 +383,9 @@ export function DemoClient() {
         {script === "twin" ? (
           <>
             {" "}
-            · secondary <span className="font-mono text-zinc-400">{shortAddr(DEMO_WALLET_B)}</span>
+            · whale <span className="font-mono text-zinc-400">{shortAddr(DEMO_WALLET_TWIN_WHALE)}</span>
+            {" · retail "}
+            <span className="font-mono text-zinc-400">{shortAddr(DEMO_WALLET_TWIN_RETAIL)}</span>
           </>
         ) : null}
         {script === "seed" ? (

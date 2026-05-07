@@ -217,7 +217,13 @@ export function SimulatorClient() {
       <div className="mb-8">
         <TorqueStatusBanner />
       </div>
-      <h1 className="text-3xl font-semibold tracking-tight text-white">Interactive simulator</h1>
+      <h1 className="inline-flex flex-wrap items-center gap-1 text-3xl font-semibold tracking-tight text-white">
+        Interactive simulator
+        <Hint title="Hands-on mode">
+          Step through register → bridge → daily ticks in any order. The in-memory store resets when you redeploy; use{" "}
+          <strong className="text-zinc-200">Reset wallet</strong> to clear one address between takes.
+        </Hint>
+      </h1>
       <p className="mt-3 max-w-2xl text-sm text-zinc-400 sm:text-base">
         Tune parameters and send events to the Torque ingester when{" "}
         <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-100 ring-1 ring-zinc-700">
@@ -228,14 +234,19 @@ export function SimulatorClient() {
       </p>
 
       <div className="mt-6">
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+        <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">
           Quick load ({SCENARIOS.length} presets)
+          <Hint title="Presets">
+            Jumps to the same wallets and numbers as the Examples page. URL{" "}
+            <span className="font-mono text-cyan-300">?preset=…</span> is bookmarkable for sharing a configuration.
+          </Hint>
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
           {SCENARIOS.map((s) => (
             <Link
               key={s.id}
               href={`/simulator?preset=${encodeURIComponent(s.id)}`}
+              title={`${s.sourceChain} → ${s.destChain} · ${s.amount} USDC · min ${s.minHold} · decay ${s.decay}%`}
               className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                 presetId === s.id
                   ? "border-teal-500 bg-teal-950/50 text-teal-200"
@@ -249,7 +260,14 @@ export function SimulatorClient() {
       </div>
 
       <details className="mt-6 rounded-xl border border-zinc-700/80 bg-slate-900/40 p-4 text-sm text-zinc-400">
-        <summary className="cursor-pointer font-medium text-zinc-200">Ingest payload cheat sheet</summary>
+        <summary className="inline-flex cursor-pointer list-none items-center gap-1 font-medium text-zinc-200 [&::-webkit-details-marker]:hidden">
+          Ingest payload cheat sheet
+          <Hint title="For Torque setup">
+            Align <span className="font-mono text-cyan-300">eventName</span> and <span className="font-mono text-cyan-300">data</span> keys with
+            the custom events you create in Torque; defaults are <span className="font-mono">bridge_hold_completed</span> and{" "}
+            <span className="font-mono">bridge_hold_daily_snapshot</span>.
+          </Hint>
+        </summary>
         <p className="mt-3 text-xs leading-relaxed">
           Every event is <span className="font-mono text-cyan-300">POST …/events</span> with{" "}
           <span className="font-mono">userPubkey</span>, <span className="font-mono">timestamp</span>,{" "}
@@ -265,7 +283,7 @@ export function SimulatorClient() {
           {`{
   "userPubkey": "7xKX…gAsU",
   "timestamp": 1717123456789,
-  "eventName": "bridge_hold_snapshot",
+  "eventName": "bridge_hold_daily_snapshot",
   "data": {
     "dayIndex": 3,
     "meetsThreshold": true,
@@ -281,7 +299,15 @@ export function SimulatorClient() {
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         <div className={cardSurface}>
-          <h2 className="text-lg font-medium text-white">Participant</h2>
+          <h2 className="inline-flex items-center gap-1 text-lg font-medium text-white">
+            Participant
+            <Hint title="Registration">
+              <span className="font-normal">
+                Register creates the row in the demo store. Re-register updates min-hold only;{" "}
+                <strong className="text-zinc-200">Reset wallet</strong> wipes the participant entirely.
+              </span>
+            </Hint>
+          </h2>
           <p className="mt-1 text-xs text-zinc-400">
             Solana-style address recommended so it matches your Torque wallet column.
           </p>
@@ -332,6 +358,7 @@ export function SimulatorClient() {
               type="button"
               disabled={busy || !wallet.trim()}
               onClick={() => void onRegister()}
+              title="Create or update participant row and min-hold"
               className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-900 shadow-sm hover:bg-white disabled:opacity-45"
             >
               Register
@@ -340,6 +367,7 @@ export function SimulatorClient() {
               type="button"
               disabled={busy || !wallet.trim()}
               onClick={() => void loadParticipant(wallet)}
+              title="GET latest participant from server (after Live demo or another tab)"
               className="rounded-lg border-2 border-zinc-500 bg-zinc-900 px-4 py-2 text-sm font-semibold text-zinc-100 hover:bg-zinc-800 disabled:opacity-45"
             >
               Refresh state
@@ -348,6 +376,7 @@ export function SimulatorClient() {
               type="button"
               disabled={busy || !wallet.trim()}
               onClick={() => void onResetSession()}
+              title="Remove this wallet from the demo store"
               className="rounded-lg border-2 border-red-900/60 bg-red-950/30 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-950/50 disabled:opacity-45"
             >
               Reset wallet
@@ -356,6 +385,7 @@ export function SimulatorClient() {
               type="button"
               disabled={busy || !wallet.trim()}
               onClick={() => void onRunPresetFlow()}
+              title="Register → bridge → 3 indexer ticks using current form values"
               className="rounded-lg border-2 border-teal-600/70 bg-teal-950/40 px-4 py-2 text-sm font-semibold text-teal-100 hover:bg-teal-950/60 disabled:opacity-45"
             >
               Run preset flow
@@ -377,7 +407,10 @@ export function SimulatorClient() {
           </h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="text-xs font-medium text-zinc-400">
-              Amount
+              <span className="inline-flex items-center gap-1">
+                Amount (simulated USDC)
+                <Hint title="Bridge notional">Written to bridgedAmount and initial balance when you record the bridge.</Hint>
+              </span>
               <input
                 type="number"
                 className={field}
@@ -444,7 +477,13 @@ export function SimulatorClient() {
 
           <div className="mt-4 flex flex-wrap items-end gap-2">
             <label className="text-xs font-medium text-zinc-400">
-              Batch ticks (1–30)
+              <span className="inline-flex items-center gap-1">
+                Batch ticks (1–30)
+                <Hint title="Batch">
+                  Runs N sequential indexer ticks with the same decay %. Faster than clicking “Advance one day” for long
+                  simulations.
+                </Hint>
+              </span>
               <input
                 type="number"
                 min={1}
@@ -466,8 +505,14 @@ export function SimulatorClient() {
 
           <hr className="my-6 border-zinc-700/80" />
 
-          <h3 className="text-sm font-semibold text-white">Adjust simulated balance</h3>
-          <p className="mt-1 text-xs text-zinc-400">Use this to fake sells or top-ups between indexer ticks.</p>
+          <h3 className="inline-flex items-center gap-1 text-sm font-semibold text-white">
+            Adjust simulated balance
+            <Hint title="Why edit balance">
+              Simulates a swap, withdrawal, or top-up on the destination chain without a new bridge event. Next snapshot
+              reads this balance for meetsThreshold and streak logic.
+            </Hint>
+          </h3>
+          <p className="mt-1 text-xs text-zinc-400">Fake sells or top-ups between indexer ticks.</p>
           <div className="mt-2 flex gap-2">
             <input
               type="number"
@@ -488,7 +533,14 @@ export function SimulatorClient() {
 
         <div className="space-y-6">
           <div className={cardSurface}>
-            <h2 className="text-lg font-medium text-white">Live state</h2>
+            <h2 className="inline-flex items-center gap-1 text-lg font-medium text-white">
+              Live state
+              <Hint title="Metrics">
+                <strong className="text-zinc-200">Streak</strong> from the latest snapshot;{" "}
+                <strong className="text-zinc-200">Meets min</strong> compares live balance to min-hold;{" "}
+                <strong className="text-zinc-200">Qual days</strong> counts snapshots where meetsThreshold was true.
+              </Hint>
+            </h2>
             {!participant ? (
               <p className="mt-3 text-sm text-zinc-400">Register a wallet to see state.</p>
             ) : (
@@ -556,7 +608,10 @@ export function SimulatorClient() {
           </div>
 
           <div className={cardSurface}>
-            <h2 className="text-lg font-medium text-white">Snapshot log</h2>
+            <h2 className="inline-flex items-center gap-1 text-lg font-medium text-white">
+              Snapshot log
+              <Hint title="History">Newest first. Each row is what was sent (or skipped) for Torque on that indexer tick.</Hint>
+            </h2>
             {!participant || participant.snapshots.length === 0 ? (
               <p className="mt-3 text-sm text-zinc-400">No indexer ticks yet.</p>
             ) : (

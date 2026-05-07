@@ -18,6 +18,30 @@ export type Participant = {
 
 export type BoardRow = { wallet: string; streak: number; qualifyingDays: number; balance: number };
 
+/** Full row for leaderboard page (sorted like `leaderboard()`). */
+export type LeaderboardOverviewRow = BoardRow & {
+  rank: number;
+  bridgedAmount: number;
+  minHold: number;
+  sourceChain: string;
+  destChain: string;
+  snapshotCount: number;
+  meetsThreshold: boolean;
+};
+
+/** Aggregate stats over all participants who have completed a bridge. */
+export type LeaderboardStats = {
+  participantCount: number;
+  totalBridgedVolume: number;
+  totalBalanceOnDest: number;
+  sumQualifyingSnapshots: number;
+  avgStreak: number;
+  maxStreak: number;
+  uniqueRoutes: number;
+  topRoute: string | null;
+  topRouteCount: number;
+};
+
 export type Scenario = {
   id: string;
   title: string;

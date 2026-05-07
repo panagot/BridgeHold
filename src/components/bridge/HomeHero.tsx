@@ -12,9 +12,7 @@ export function HomeHero() {
         aria-hidden
       />
       <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-12 sm:px-6 lg:px-8 lg:pb-20 lg:pt-16">
-        <p className="font-mono text-xs tracking-[0.2em] text-cyan-400/90">
-          FRONTIER × TORQUE · BRIDGE &amp; HOLD
-        </p>
+        <p className="font-mono text-xs tracking-[0.2em] text-cyan-400/90">BRIDGEHOLD × TORQUE</p>
         <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-5xl sm:leading-[1.1]">
           Turn cross-chain holds into{" "}
           <span className="bg-gradient-to-r from-cyan-300 to-teal-400 bg-clip-text text-transparent">
@@ -25,7 +23,7 @@ export function HomeHero() {
           A <strong className="font-medium text-white">growth loop</strong> for protocols that care about sticky
           liquidity: bridge in, prove daily balance with indexer snapshots, and let{" "}
           <strong className="font-medium text-white">Torque</strong> run leaderboards, raffles, and rebates on real
-          activity — the same playbook teams like Raydium and Axiom use at scale, packaged for your hackathon MVP.
+          activity — the same retention patterns high-volume teams run with Torque, packaged as a focused reference app.
         </p>
         <p className="mt-3 max-w-2xl text-sm text-zinc-500">
           Nine preset journeys, four live-demo scripts (including a leaderboard seed), and a simulator with batch ticks and

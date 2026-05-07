@@ -21,6 +21,11 @@ const items = [
     title: "Simulator",
     desc: "Presets, batch days, reset session, full ingest controls.",
   },
+  {
+    href: "/leaderboard",
+    title: "Leaderboard",
+    desc: "Rankings plus volume, streaks, routes, and qualifying snapshot totals.",
+  },
 ] as const;
 
 export function HomeNavCards() {
@@ -28,7 +33,7 @@ export function HomeNavCards() {
     <div className="mx-auto max-w-6xl border-t border-zinc-800/80 bg-[#070b12] px-4 py-14 sm:px-6 lg:px-8">
       <h2 className="text-lg font-semibold text-white">Explore</h2>
       <p className="mt-1 text-sm text-zinc-400">Each section has its own page.</p>
-      <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {items.map((item) => (
           <li key={item.href}>
             <Link

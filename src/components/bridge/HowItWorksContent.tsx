@@ -1,3 +1,7 @@
+"use client";
+
+import { Hint } from "@/components/Tooltip";
+
 const steps = [
   {
     step: "01",
@@ -19,7 +23,13 @@ const steps = [
 export function HowItWorksContent() {
   return (
     <>
-      <h1 className="text-3xl font-semibold tracking-tight text-white">How it works</h1>
+      <h1 className="inline-flex flex-wrap items-center gap-1 text-3xl font-semibold tracking-tight text-white">
+        How it works
+        <Hint title="End-to-end loop">
+          BridgeHold is the <strong className="text-zinc-200">event spine</strong>: bridge in, prove holds with daily
+          snapshots, let Torque campaigns read the same custom events you emit from this app or your production worker.
+        </Hint>
+      </h1>
       <p className="mt-3 max-w-2xl text-sm text-zinc-400 sm:text-base">
         Three moving parts: your product records bridges, a cron or indexer snapshots balances, and Torque scores
         participants for incentives.
@@ -40,7 +50,13 @@ export function HowItWorksContent() {
       </ol>
 
       <section className="mt-14 rounded-2xl border border-teal-900/40 bg-teal-950/15 p-6 sm:p-8">
-        <h2 className="text-xl font-semibold text-teal-200">Mapped to Torque primitives</h2>
+        <h2 className="inline-flex flex-wrap items-center gap-1 text-xl font-semibold text-teal-200">
+          Mapped to Torque primitives
+          <Hint title="Why this mapping">
+            Each primitive in Torque (leaderboard, raffle, rebate) needs trustworthy signals. Snapshot events carry
+            booleans and counters your SQL can filter — no new on-chain contracts required for the integration.
+          </Hint>
+        </h2>
         <p className="mt-3 text-sm leading-relaxed text-zinc-400">
           Torque is the programmable retention layer: leaderboards, rebates, raffles, and gifts. BridgeHold gives each
           primitive <strong className="text-zinc-200">clean, recurring signals</strong> so campaigns optimize on real
@@ -79,9 +95,9 @@ export function HowItWorksContent() {
       </section>
 
       <section className="mt-14">
-        <h2 className="text-xl font-semibold text-white">Example campaigns you can pitch</h2>
+        <h2 className="text-xl font-semibold text-white">Example campaign concepts</h2>
         <p className="mt-2 text-sm text-zinc-400">
-          Pair this prototype narrative with Torque incentives — each bullet is a one-liner for a demo or slide.
+          Pair these patterns with Torque incentives — each line is a concise campaign concept you can implement in SQL.
         </p>
         <ul className="mt-6 space-y-3 text-sm text-zinc-300">
           <li>
@@ -97,16 +113,16 @@ export function HowItWorksContent() {
             credit until they fall below min — mirrors real fee drag without harsh binary loss.
           </li>
           <li>
-            <strong className="text-white">Twin-wallet stress test</strong> — Run the live demo’s twin script before a
-            judge call; leaderboard should show two streaks side by side.
+            <strong className="text-white">Twin-wallet comparison</strong> — Run the live demo twin script to register
+            two participants, bridge different notionals, and advance days in parallel so the board shows two streaks.
           </li>
           <li>
-            <strong className="text-white">Leaderboard seed reel</strong> — The demo’s fourth script registers three
-            personas and advances one day each — use it to fill the board before a screen recording.
+            <strong className="text-white">Leaderboard seed</strong> — The fourth live-demo script registers three
+            personas and advances one day each to populate a multi-wallet board in one pass.
           </li>
           <li>
             <strong className="text-white">Preset flow shortcut</strong> — In the simulator, “Run preset flow” chains
-            register → bridge → three ticks so you can narrate streak growth without clicking every button.
+            register → bridge → three ticks without stepping through each control manually.
           </li>
         </ul>
       </section>
