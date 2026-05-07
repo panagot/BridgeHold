@@ -17,6 +17,7 @@ import {
   shortAddr,
 } from "@/lib/bridge/constants";
 import type { BoardRow, Participant } from "@/lib/bridge/types";
+import { torqueOutcomeSummary } from "@/lib/torque-messages";
 
 export function SimulatorClient() {
   const searchParams = useSearchParams();
@@ -94,9 +95,10 @@ export function SimulatorClient() {
       setParticipant(j.participant);
       setBalanceEdit(j.participant.currentBalance);
       const t = j.participant.bridgeTorque;
-      if (t?.skipped) setMsg(`Bridge saved locally. Torque: skipped (${t.reason}).`);
-      else if (t?.ok) setMsg("Bridge recorded — ingester accepted the event.");
-      else setMsg(`Bridge saved — Torque: ${JSON.stringify(t)}`);
+      const torqueLine = torqueOutcomeSummary(t, "bridge");
+      if (t?.skipped) setMsg(`Bridge saved locally. ${torqueLine}`);
+      else if (t?.ok) setMsg(`Bridge recorded. ${torqueLine}`);
+      else setMsg(`Bridge saved locally (demo store). ${torqueLine}`);
       await refreshBoard();
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "error");
@@ -127,10 +129,10 @@ export function SimulatorClient() {
       setParticipant(j.participant);
       const snap = j.snapshot;
       const tr = snap?.torque;
-      if (tr?.skipped)
-        setMsg(`Day ${snap.dayIndex} snapshot stored. Torque skipped (${tr.reason}).`);
-      else if (tr?.ok) setMsg(`Day ${snap.dayIndex} sent — streak now ${snap.streakAfter}.`);
-      else setMsg(`Snapshot issue: ${JSON.stringify(tr)}`);
+      const torqueLine = torqueOutcomeSummary(tr, "snapshot");
+      if (tr?.skipped) setMsg(`Day ${snap.dayIndex} snapshot stored. ${torqueLine}`);
+      else if (tr?.ok) setMsg(`Day ${snap.dayIndex}: streak ${snap.streakAfter}. ${torqueLine}`);
+      else setMsg(`Day ${snap.dayIndex} stored locally. ${torqueLine}`);
       await refreshBoard();
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "error");
@@ -152,7 +154,10 @@ export function SimulatorClient() {
       }
       if (last) {
         const snap = last.snapshot;
-        setMsg(`Batch complete: ${n} ticks · last day ${snap.dayIndex}, streak ${snap.streakAfter}.`);
+        const tr = snap.torque;
+        setMsg(
+          `Batch: ${n} ticks. Last day ${snap.dayIndex}, streak ${snap.streakAfter}. ${torqueOutcomeSummary(tr, "snapshot")}`,
+        );
       }
       await refreshBoard();
     } catch (e) {
@@ -178,8 +183,10 @@ export function SimulatorClient() {
       }
       if (last) {
         const snap = last.snapshot;
+        const bridgeLine = torqueOutcomeSummary(last.participant.bridgeTorque, "bridge");
+        const snapLine = torqueOutcomeSummary(snap.torque, "snapshot");
         setMsg(
-          `Preset flow done: register → bridge → 3 ticks. Latest day ${snap.dayIndex}, streak ${snap.streakAfter}.`,
+          `Preset flow: register → bridge → 3 ticks. Day ${snap.dayIndex}, streak ${snap.streakAfter}. ${bridgeLine} | Last tick: ${snapLine}`,
         );
       }
       await refreshBoard();
@@ -217,28 +224,44 @@ export function SimulatorClient() {
       <div className="mb-8">
         <TorqueStatusBanner />
       </div>
-      <h1 className="inline-flex flex-wrap items-center gap-1 text-3xl font-semibold tracking-tight text-white">
-        Interactive simulator
-        <Hint title="Hands-on mode">
-          Step through register → bridge → daily ticks in any order. The in-memory store resets when you redeploy; use{" "}
-          <strong className="text-zinc-200">Reset wallet</strong> to clear one address between takes.
-        </Hint>
-      </h1>
-      <p className="mt-3 max-w-2xl text-sm text-zinc-400 sm:text-base">
-        Tune parameters and send events to the Torque ingester when{" "}
-        <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-100 ring-1 ring-zinc-700">
-          TORQUE_INGEST_API_KEY
-        </code>{" "}
-        is set in{" "}
-        <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-zinc-100 ring-1 ring-zinc-700">.env.local</code>.
-      </p>
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <h1 className="inline-flex flex-wrap items-center gap-1 text-3xl font-semibold tracking-tight text-slate-900">
+          Interactive simulator
+          <Hint title="Hands-on mode">
+            Step through register → bridge → daily ticks in any order. The in-memory store resets when you redeploy; use{" "}
+            <strong className="text-slate-800">Reset wallet</strong> to clear one address between runs.
+          </Hint>
+        </h1>
+        <p className="mt-3 max-w-3xl text-sm text-slate-600 sm:text-base">
+          Tune parameters and emit events to Torque when{" "}
+          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-800 ring-1 ring-slate-200">
+            TORQUE_INGEST_API_KEY
+          </code>{" "}
+          is set in{" "}
+          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-800 ring-1 ring-slate-200">.env.local</code>.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2 text-xs">
+          <Link
+            href="/leaderboard"
+            className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:border-teal-400"
+          >
+            Open full leaderboard
+          </Link>
+          <Link
+            href="/demo"
+            className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:border-cyan-400"
+          >
+            Run automated demo
+          </Link>
+        </div>
+      </div>
 
       <div className="mt-6">
-        <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+        <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
           Quick load ({SCENARIOS.length} presets)
           <Hint title="Presets">
             Jumps to the same wallets and numbers as the Examples page. URL{" "}
-            <span className="font-mono text-cyan-300">?preset=…</span> is bookmarkable for sharing a configuration.
+            <span className="font-mono text-cyan-700">?preset=…</span> is bookmarkable for sharing a configuration.
           </Hint>
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -249,8 +272,8 @@ export function SimulatorClient() {
               title={`${s.sourceChain} → ${s.destChain} · ${s.amount} USDC · min ${s.minHold} · decay ${s.decay}%`}
               className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                 presetId === s.id
-                  ? "border-teal-500 bg-teal-950/50 text-teal-200"
-                  : "border-zinc-600 bg-slate-900/80 text-zinc-300 hover:border-zinc-500"
+                  ? "border-teal-400 bg-teal-50 text-teal-800"
+                  : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
               }`}
             >
               {s.title}
@@ -259,17 +282,17 @@ export function SimulatorClient() {
         </div>
       </div>
 
-      <details className="mt-6 rounded-xl border border-zinc-700/80 bg-slate-900/40 p-4 text-sm text-zinc-400">
-        <summary className="inline-flex cursor-pointer list-none items-center gap-1 font-medium text-zinc-200 [&::-webkit-details-marker]:hidden">
+      <details className="mt-6 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+        <summary className="inline-flex cursor-pointer list-none items-center gap-1 font-medium text-slate-800 [&::-webkit-details-marker]:hidden">
           Ingest payload cheat sheet
           <Hint title="For Torque setup">
-            Align <span className="font-mono text-cyan-300">eventName</span> and <span className="font-mono text-cyan-300">data</span> keys with
+            Align <span className="font-mono text-cyan-700">eventName</span> and <span className="font-mono text-cyan-700">data</span> keys with
             the custom events you create in Torque; defaults are <span className="font-mono">bridge_hold_completed</span> and{" "}
             <span className="font-mono">bridge_hold_daily_snapshot</span>.
           </Hint>
         </summary>
         <p className="mt-3 text-xs leading-relaxed">
-          Every event is <span className="font-mono text-cyan-300">POST …/events</span> with{" "}
+          Every event is <span className="font-mono text-cyan-700">POST …/events</span> with{" "}
           <span className="font-mono">userPubkey</span>, <span className="font-mono">timestamp</span>,{" "}
           <span className="font-mono">eventName</span>, <span className="font-mono">data</span>. Bridge uses{" "}
           <span className="font-mono">amount</span>, <span className="font-mono">sourceChain</span>,{" "}
@@ -278,8 +301,8 @@ export function SimulatorClient() {
           <span className="font-mono">balance</span>, <span className="font-mono">streakDays</span>,{" "}
           <span className="font-mono">bridgedAmount</span>.
         </p>
-        <p className="mt-3 text-xs font-medium text-zinc-300">Example snapshot body (shape only):</p>
-        <pre className="mt-2 overflow-x-auto rounded-lg border border-zinc-700/80 bg-zinc-950 p-3 text-[10px] leading-relaxed text-cyan-100/90">
+        <p className="mt-3 text-xs font-medium text-slate-700">Example snapshot body (shape only):</p>
+        <pre className="mt-2 overflow-x-auto rounded-lg border border-slate-200 bg-slate-950 p-3 text-[10px] leading-relaxed text-cyan-100/90">
           {`{
   "userPubkey": "7xKX…gAsU",
   "timestamp": 1717123456789,
@@ -297,26 +320,26 @@ export function SimulatorClient() {
         </pre>
       </details>
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-2">
+      <div className="mt-10 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
         <div className={cardSurface}>
-          <h2 className="inline-flex items-center gap-1 text-lg font-medium text-white">
+          <h2 className="inline-flex items-center gap-1 text-lg font-medium text-slate-900">
             Participant
             <Hint title="Registration">
               <span className="font-normal">
                 Register creates the row in the demo store. Re-register updates min-hold only;{" "}
-                <strong className="text-zinc-200">Reset wallet</strong> wipes the participant entirely.
+                <strong className="text-slate-800">Reset wallet</strong> wipes the participant entirely.
               </span>
             </Hint>
           </h2>
-          <p className="mt-1 text-xs text-zinc-400">
+          <p className="mt-1 text-xs text-slate-600">
             Solana-style address recommended so it matches your Torque wallet column.
           </p>
-          <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-zinc-400">
+          <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-slate-500">
             <span className="inline-flex items-center normal-case">
               Wallet
               <Hint title="Wallet hint">
                 Must match the wallet you use in Torque campaigns. Custom events always include top-level{" "}
-                <code className="text-cyan-300">userPubkey</code>.
+                <code className="text-cyan-700">userPubkey</code>.
               </Hint>
             </span>
             <div className="mt-1 flex gap-2">
@@ -331,18 +354,18 @@ export function SimulatorClient() {
                 type="button"
                 disabled={!wallet.trim()}
                 onClick={copyWallet}
-                className="shrink-0 rounded-lg border-2 border-zinc-600 bg-zinc-900 px-3 text-xs font-semibold text-zinc-200 hover:bg-zinc-800 disabled:opacity-40"
+                className="shrink-0 rounded-lg border-2 border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40"
               >
                 Copy
               </button>
             </div>
           </label>
-          <label className="mt-3 block text-xs font-semibold uppercase tracking-wide text-zinc-400">
+          <label className="mt-3 block text-xs font-semibold uppercase tracking-wide text-slate-500">
             <span className="inline-flex items-center normal-case">
               Min hold (simulated)
               <Hint title="Minimum hold">
                 If daily balance falls below this after bridge,{" "}
-                <code className="text-cyan-300">meetsThreshold</code> is false and the streak resets in the snapshot
+                <code className="text-cyan-700">meetsThreshold</code> is false and the streak resets in the snapshot
                 event.
               </Hint>
             </span>
@@ -359,7 +382,7 @@ export function SimulatorClient() {
               disabled={busy || !wallet.trim()}
               onClick={() => void onRegister()}
               title="Create or update participant row and min-hold"
-              className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-900 shadow-sm hover:bg-white disabled:opacity-45"
+              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-45"
             >
               Register
             </button>
@@ -368,7 +391,7 @@ export function SimulatorClient() {
               disabled={busy || !wallet.trim()}
               onClick={() => void loadParticipant(wallet)}
               title="GET latest participant from server (after Live demo or another tab)"
-              className="rounded-lg border-2 border-zinc-500 bg-zinc-900 px-4 py-2 text-sm font-semibold text-zinc-100 hover:bg-zinc-800 disabled:opacity-45"
+              className="rounded-lg border-2 border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-45"
             >
               Refresh state
             </button>
@@ -377,7 +400,7 @@ export function SimulatorClient() {
               disabled={busy || !wallet.trim()}
               onClick={() => void onResetSession()}
               title="Remove this wallet from the demo store"
-              className="rounded-lg border-2 border-red-900/60 bg-red-950/30 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-950/50 disabled:opacity-45"
+              className="rounded-lg border-2 border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-45"
             >
               Reset wallet
             </button>
@@ -386,27 +409,27 @@ export function SimulatorClient() {
               disabled={busy || !wallet.trim()}
               onClick={() => void onRunPresetFlow()}
               title="Register → bridge → 3 indexer ticks using current form values"
-              className="rounded-lg border-2 border-teal-600/70 bg-teal-950/40 px-4 py-2 text-sm font-semibold text-teal-100 hover:bg-teal-950/60 disabled:opacity-45"
+              className="rounded-lg border-2 border-teal-300 bg-teal-50 px-4 py-2 text-sm font-semibold text-teal-800 hover:bg-teal-100 disabled:opacity-45"
             >
               Run preset flow
             </button>
           </div>
-          <p className="mt-2 text-[11px] text-zinc-500">
+          <p className="mt-2 text-[11px] text-slate-500">
             Preset flow: register → bridge with fields above → three indexer ticks using the decay % (handy right after
             loading a quick preset).
           </p>
 
-          <hr className="my-6 border-zinc-700/80" />
+          <hr className="my-6 border-slate-200" />
 
-          <h3 className="inline-flex items-center text-sm font-semibold text-white">
+          <h3 className="inline-flex items-center text-sm font-semibold text-slate-900">
             Simulate bridge
             <Hint title="Bridge event">
-              Fires <code className="text-cyan-300">TORQUE_EVENT_BRIDGE</code> (default{" "}
-              <code className="text-cyan-300">bridge_hold_completed</code>) with amount, chains, and a mock tx hash.
+              Fires <code className="text-cyan-700">TORQUE_EVENT_BRIDGE</code> (default{" "}
+              <code className="text-cyan-700">bridge_hold_completed</code>) with amount, chains, and a mock tx hash.
             </Hint>
           </h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <label className="text-xs font-medium text-zinc-400">
+            <label className="text-xs font-medium text-slate-600">
               <span className="inline-flex items-center gap-1">
                 Amount (simulated USDC)
                 <Hint title="Bridge notional">Written to bridgedAmount and initial balance when you record the bridge.</Hint>
@@ -418,7 +441,7 @@ export function SimulatorClient() {
                 onChange={(e) => setAmount(Number(e.target.value))}
               />
             </label>
-            <label className="text-xs font-medium text-zinc-400">
+            <label className="text-xs font-medium text-slate-600">
               Source → Dest
               <div className="mt-1 flex gap-2">
                 <input
@@ -443,16 +466,16 @@ export function SimulatorClient() {
             Record bridge + emit Torque event
           </button>
 
-          <hr className="my-6 border-zinc-700/80" />
+          <hr className="my-6 border-slate-200" />
 
-          <h3 className="inline-flex items-center text-sm font-semibold text-white">
+          <h3 className="inline-flex items-center text-sm font-semibold text-slate-900">
             Indexer tick
             <Hint title="Daily snapshot">
-              Sends <code className="text-cyan-300">TORQUE_EVENT_SNAPSHOT</code> with streak, balance, and booleans your
+              Sends <code className="text-cyan-700">TORQUE_EVENT_SNAPSHOT</code> with streak, balance, and booleans your
               Torque SQL can filter on.
             </Hint>
           </h3>
-          <label className="mt-2 block text-xs font-medium text-zinc-400">
+          <label className="mt-2 block text-xs font-medium text-slate-600">
             <span className="inline-flex items-center">
               Decay % / day
               <Hint title="Decay">Applied before the snapshot to mimic slow outflows. Set 0 for a perfect holder.</Hint>
@@ -470,13 +493,13 @@ export function SimulatorClient() {
             type="button"
             disabled={busy || !wallet.trim()}
             onClick={() => void onAdvanceDay()}
-            className="mt-4 w-full rounded-lg border-2 border-cyan-500 bg-slate-950 px-4 py-2.5 text-sm font-semibold text-cyan-50 shadow-[inset_0_1px_0_0_rgba(34,211,238,0.12)] transition hover:border-cyan-400 hover:bg-slate-900 disabled:opacity-45"
+            className="mt-4 w-full rounded-lg border-2 border-cyan-300 bg-cyan-50 px-4 py-2.5 text-sm font-semibold text-cyan-800 transition hover:bg-cyan-100 disabled:opacity-45"
           >
             Advance one day &amp; POST /events
           </button>
 
           <div className="mt-4 flex flex-wrap items-end gap-2">
-            <label className="text-xs font-medium text-zinc-400">
+            <label className="text-xs font-medium text-slate-600">
               <span className="inline-flex items-center gap-1">
                 Batch ticks (1–30)
                 <Hint title="Batch">
@@ -497,22 +520,22 @@ export function SimulatorClient() {
               type="button"
               disabled={busy || !wallet.trim()}
               onClick={() => void onBatchAdvance()}
-              className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white ring-1 ring-zinc-600 hover:bg-slate-700 disabled:opacity-45"
+              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-45"
             >
               Run batch
             </button>
           </div>
 
-          <hr className="my-6 border-zinc-700/80" />
+          <hr className="my-6 border-slate-200" />
 
-          <h3 className="inline-flex items-center gap-1 text-sm font-semibold text-white">
+          <h3 className="inline-flex items-center gap-1 text-sm font-semibold text-slate-900">
             Adjust simulated balance
             <Hint title="Why edit balance">
               Simulates a swap, withdrawal, or top-up on the destination chain without a new bridge event. Next snapshot
               reads this balance for meetsThreshold and streak logic.
             </Hint>
           </h3>
-          <p className="mt-1 text-xs text-zinc-400">Fake sells or top-ups between indexer ticks.</p>
+          <p className="mt-1 text-xs text-slate-600">Fake sells or top-ups between indexer ticks.</p>
           <div className="mt-2 flex gap-2">
             <input
               type="number"
@@ -524,7 +547,7 @@ export function SimulatorClient() {
               type="button"
               disabled={busy || !wallet.trim()}
               onClick={() => void onSetBalance()}
-              className="rounded-lg border-2 border-zinc-500 bg-zinc-800 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-45"
+              className="rounded-lg border-2 border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-45"
             >
               Apply
             </button>
@@ -533,16 +556,16 @@ export function SimulatorClient() {
 
         <div className="space-y-6">
           <div className={cardSurface}>
-            <h2 className="inline-flex items-center gap-1 text-lg font-medium text-white">
+            <h2 className="inline-flex items-center gap-1 text-lg font-medium text-slate-900">
               Live state
               <Hint title="Metrics">
-                <strong className="text-zinc-200">Streak</strong> from the latest snapshot;{" "}
-                <strong className="text-zinc-200">Meets min</strong> compares live balance to min-hold;{" "}
-                <strong className="text-zinc-200">Qual days</strong> counts snapshots where meetsThreshold was true.
+                <strong className="text-slate-800">Streak</strong> from the latest snapshot;{" "}
+                <strong className="text-slate-800">Meets min</strong> compares live balance to min-hold;{" "}
+                <strong className="text-slate-800">Qual days</strong> counts snapshots where meetsThreshold was true.
               </Hint>
             </h2>
             {!participant ? (
-              <p className="mt-3 text-sm text-zinc-400">Register a wallet to see state.</p>
+              <p className="mt-3 text-sm text-slate-600">Register a wallet to see state.</p>
             ) : (
               <>
                 {(() => {
@@ -553,47 +576,47 @@ export function SimulatorClient() {
                   const qualDays = snaps.filter((s) => s.meetsThreshold).length;
                   return (
                     <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                      <div className="rounded-xl border border-zinc-700/80 bg-zinc-950/80 px-2 py-3">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Streak</p>
-                        <p className="mt-1 text-xl font-bold text-cyan-300">{streak}</p>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Streak</p>
+                        <p className="mt-1 text-xl font-bold text-cyan-700">{streak}</p>
                       </div>
-                      <div className="rounded-xl border border-zinc-700/80 bg-zinc-950/80 px-2 py-3">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Meets min</p>
-                        <p className={`mt-1 text-sm font-bold ${meets ? "text-teal-300" : "text-amber-300"}`}>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Meets min</p>
+                        <p className={`mt-1 text-sm font-bold ${meets ? "text-teal-700" : "text-amber-700"}`}>
                           {meets ? "Yes" : "No"}
                         </p>
                       </div>
-                      <div className="rounded-xl border border-zinc-700/80 bg-zinc-950/80 px-2 py-3">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Qual days</p>
-                        <p className="mt-1 text-xl font-bold text-zinc-100">{qualDays}</p>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Qual days</p>
+                        <p className="mt-1 text-xl font-bold text-slate-900">{qualDays}</p>
                       </div>
                     </div>
                   );
                 })()}
-              <dl className="mt-4 space-y-2 font-mono text-xs text-zinc-200">
+              <dl className="mt-4 space-y-2 font-mono text-xs text-slate-700">
                 <div className="flex justify-between gap-4">
-                  <dt className="text-zinc-500">Wallet</dt>
-                  <dd className="truncate text-cyan-300">{participant.wallet}</dd>
+                  <dt className="text-slate-500">Wallet</dt>
+                  <dd className="truncate text-cyan-700">{participant.wallet}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-zinc-500">Bridged</dt>
-                  <dd className="text-white">{participant.bridgedAmount}</dd>
+                  <dt className="text-slate-500">Bridged</dt>
+                  <dd className="text-slate-900">{participant.bridgedAmount}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-zinc-500">Balance</dt>
-                  <dd className="text-white">{participant.currentBalance}</dd>
+                  <dt className="text-slate-500">Balance</dt>
+                  <dd className="text-slate-900">{participant.currentBalance}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-zinc-500">Min hold</dt>
-                  <dd className="text-white">{participant.minHold}</dd>
+                  <dt className="text-slate-500">Min hold</dt>
+                  <dd className="text-slate-900">{participant.minHold}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-zinc-500">Last day index</dt>
-                  <dd className="text-white">{participant.lastProcessedDay}</dd>
+                  <dt className="text-slate-500">Last day index</dt>
+                  <dd className="text-slate-900">{participant.lastProcessedDay}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-zinc-500">Bridge → Torque</dt>
-                  <dd className="max-w-[55%] break-all text-right text-[10px] text-zinc-400">
+                  <dt className="text-slate-500">Bridge → Torque</dt>
+                  <dd className="max-w-[55%] break-all text-right text-[10px] text-slate-500">
                     {participant.bridgeTorque ? JSON.stringify(participant.bridgeTorque) : "—"}
                   </dd>
                 </div>
@@ -601,32 +624,38 @@ export function SimulatorClient() {
               </>
             )}
             {msg ? (
-              <p className="mt-4 rounded-lg border border-amber-600/50 bg-amber-950/50 px-3 py-2 text-xs font-medium text-amber-100">
+              <p
+                className={`mt-4 rounded-lg px-3 py-2 text-xs font-medium ${
+                  msg.toLowerCase().includes("error") || msg.toLowerCase().includes("issue")
+                    ? "border border-red-300 bg-red-50 text-red-700"
+                    : "border border-amber-300 bg-amber-50 text-amber-700"
+                }`}
+              >
                 {msg}
               </p>
             ) : null}
           </div>
 
           <div className={cardSurface}>
-            <h2 className="inline-flex items-center gap-1 text-lg font-medium text-white">
+            <h2 className="inline-flex items-center gap-1 text-lg font-medium text-slate-900">
               Snapshot log
               <Hint title="History">Newest first. Each row is what was sent (or skipped) for Torque on that indexer tick.</Hint>
             </h2>
             {!participant || participant.snapshots.length === 0 ? (
-              <p className="mt-3 text-sm text-zinc-400">No indexer ticks yet.</p>
+              <p className="mt-3 text-sm text-slate-600">No indexer ticks yet.</p>
             ) : (
               <ul className="mt-3 max-h-56 space-y-2 overflow-auto text-xs">
                 {[...participant.snapshots].reverse().map((s) => (
                   <li
                     key={s.dayIndex}
-                    className="flex flex-col rounded-lg border border-zinc-700/60 bg-zinc-950/80 px-3 py-2"
+                    className="flex flex-col rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
                   >
-                    <span className="font-mono font-medium text-cyan-300">Day {s.dayIndex}</span>
-                    <span className="text-zinc-300">
+                    <span className="font-mono font-medium text-cyan-700">Day {s.dayIndex}</span>
+                    <span className="text-slate-600">
                       balance {s.balance} · meets {String(s.meetsThreshold)} · streak {s.streakAfter}
                     </span>
                     {s.torque?.skipped ? (
-                      <span className="font-medium text-amber-300">Torque skipped: {s.torque.reason}</span>
+                      <span className="font-medium text-amber-700">Torque skipped: {s.torque.reason}</span>
                     ) : null}
                   </li>
                 ))}
@@ -635,34 +664,34 @@ export function SimulatorClient() {
           </div>
 
           <div className={cardSurface}>
-            <h2 className="inline-flex items-center gap-1 text-lg font-medium text-white">
+            <h2 className="inline-flex items-center gap-1 text-lg font-medium text-slate-900">
               Local consistency board
               <Hint title="Leaderboard preview">
                 Sorted by current streak, then qualifying days. Torque can mirror this with SQL on your custom events.
               </Hint>
             </h2>
             {board.length === 0 ? (
-              <p className="mt-3 text-sm text-zinc-400">Nobody has bridged yet.</p>
+              <p className="mt-3 text-sm text-slate-600">Nobody has bridged yet.</p>
             ) : (
               <table className="mt-4 w-full text-left text-xs">
                 <thead>
-                  <tr className="text-zinc-400">
+                  <tr className="text-slate-500">
                     <th className="pb-2 font-semibold">Wallet</th>
                     <th className="pb-2 font-semibold">Streak</th>
                     <th className="pb-2 font-semibold">Qual days</th>
                     <th className="pb-2 font-semibold">Bal</th>
                   </tr>
                 </thead>
-                <tbody className="font-mono text-zinc-100">
+                <tbody className="font-mono text-slate-800">
                   {board.map((r) => (
                     <tr
                       key={r.wallet}
-                      className={`border-t border-zinc-700/60 ${
-                        wallet.trim() && r.wallet === wallet.trim() ? "bg-teal-950/25" : ""
+                      className={`border-t border-slate-200 ${
+                        wallet.trim() && r.wallet === wallet.trim() ? "bg-teal-50" : ""
                       }`}
                     >
-                      <td className="py-2 text-zinc-300">{shortAddr(r.wallet)}</td>
-                      <td className="py-2 font-semibold text-cyan-300">{r.streak}</td>
+                      <td className="py-2 text-slate-700">{shortAddr(r.wallet)}</td>
+                      <td className="py-2 font-semibold text-cyan-700">{r.streak}</td>
                       <td className="py-2">{r.qualifyingDays}</td>
                       <td className="py-2">{r.balance}</td>
                     </tr>

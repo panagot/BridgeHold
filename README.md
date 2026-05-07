@@ -4,6 +4,7 @@
 
 ## Features
 
+- **Five strategic use cases** on [`/use-cases`](/use-cases) (sticky TVL, anti-dump, cohorts/routes, consumer seasons, distributors) tied to how Torque consumes the same events.
 - **Nine preset scenarios** (Arbitrum, Base, Ethereum, Optimism, Polygon, Avalanche, Sui, BNB Chain, micro-retail, etc.) — each opens the simulator with fields filled.
 - **Four live demo scripts** — classic streak, decay week, twin wallets (isolated addresses), leaderboard seed.
 - **Simulator** — quick-load presets, batch ticks (1–30), preset flow shortcut, copy wallet, reset session, ingest status banner, inline help hints.
@@ -32,8 +33,9 @@ Under **Settings → Environment Variables**, add the same keys as in `.env.exam
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Overview + links |
-| `/how-it-works` | Flow + Torque primitives + campaign concepts |
+| `/` | Hero, use cases, Torque integration, credibility, growth loop |
+| `/use-cases` | Five strategic narratives mapped to Torque |
+| `/how-it-works` | Flow + primitives + full Torque payload showcase |
 | `/examples` | Nine presets + ten mix-and-match playbooks |
 | `/demo` | Automated multi-script demo + log |
 | `/simulator` | Full manual control + batch ticks |

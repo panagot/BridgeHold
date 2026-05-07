@@ -153,6 +153,9 @@ export function leaderboardOverview(): {
   const sumStreak = rows.reduce((s, r) => s + r.streak, 0);
   const maxStreak = n ? Math.max(...rows.map((r) => r.streak)) : 0;
 
+  const walletsMeetingMin = rows.filter((r) => r.meetsThreshold).length;
+  const totalSnapshotTicks = rows.reduce((s, r) => s + r.snapshotCount, 0);
+
   const stats: LeaderboardStats = {
     participantCount: n,
     totalBridgedVolume,
@@ -163,6 +166,11 @@ export function leaderboardOverview(): {
     uniqueRoutes: routeCounts.size,
     topRoute,
     topRouteCount,
+    walletsMeetingMin,
+    pctMeetingMin: n ? Math.round((walletsMeetingMin / n) * 1000) / 10 : 0,
+    totalSnapshotTicks,
+    avgBridgedPerWallet: n ? Math.round(totalBridgedVolume / n) : 0,
+    avgQualifyingDaysPerWallet: n ? Math.round((sumQualifyingSnapshots / n) * 10) / 10 : 0,
   };
 
   return { leaderboard, stats, rows };

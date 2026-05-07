@@ -21,7 +21,7 @@ export function TorqueStatusBanner() {
 
   if (!s) {
     return (
-      <div className="rounded-xl border border-zinc-700 bg-zinc-900/50 px-4 py-3 text-sm text-zinc-500">
+      <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
         Checking Torque ingest configuration…
       </div>
     );
@@ -29,24 +29,24 @@ export function TorqueStatusBanner() {
 
   if (s.ingestConfigured) {
     return (
-      <div className="rounded-xl border border-teal-600/50 bg-teal-950/40 px-4 py-3 text-sm">
-        <p className="font-semibold text-teal-200">Live ingest ready</p>
-        <p className="mt-1 text-zinc-300">
-          Events post to <span className="font-mono text-cyan-300">{s.ingesterHost}</span> with{" "}
-          <span className="font-mono text-zinc-200">{s.bridgeEventName}</span> and{" "}
-          <span className="font-mono text-zinc-200">{s.snapshotEventName}</span>.
+      <div className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm">
+        <p className="font-semibold text-teal-800">Live ingest ready</p>
+        <p className="mt-1 text-slate-600">
+          Events post to <span className="font-mono text-cyan-700">{s.ingesterHost}</span> with{" "}
+          <span className="font-mono text-slate-700">{s.bridgeEventName}</span> and{" "}
+          <span className="font-mono text-slate-700">{s.snapshotEventName}</span>.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-amber-600/40 bg-amber-950/30 px-4 py-3 text-sm">
-      <p className="font-semibold text-amber-200">Local-only mode</p>
-      <p className="mt-1 text-zinc-400">
-        Set <span className="font-mono text-zinc-300">TORQUE_INGEST_API_KEY</span> in{" "}
-        <span className="font-mono text-zinc-300">.env.local</span> so bridges and indexer ticks post live{" "}
-        <span className="text-zinc-300">custom_events</span> to your Torque project.
+    <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+      <p className="font-semibold text-amber-800">Local-only mode</p>
+      <p className="mt-1 text-slate-600">
+        Set <span className="font-mono text-slate-700">TORQUE_INGEST_API_KEY</span> in{" "}
+        <span className="font-mono text-slate-700">.env.local</span> so bridges and indexer ticks post live{" "}
+        <span className="text-slate-700">custom_events</span> to your Torque project.
       </p>
     </div>
   );

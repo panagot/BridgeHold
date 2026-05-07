@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { Hint } from "@/components/Tooltip";
 
 const steps = [
@@ -20,110 +22,116 @@ const steps = [
   },
 ] as const;
 
+const primitives = [
+  {
+    title: "Leaderboard",
+    tone: "amber",
+    detail:
+      "Rank by streakDays or qualifying snapshot count to keep weekly competitions tied to actual holding behavior.",
+    field: "streakDays, qualifyingDays",
+  },
+  {
+    title: "Raffle",
+    tone: "orange",
+    detail:
+      "Issue tickets from meetsThreshold snapshots so consistent smaller wallets still have fair odds.",
+    field: "meetsThreshold, dayIndex",
+  },
+  {
+    title: "Rebate / gift",
+    tone: "cyan",
+    detail:
+      "Reward bridge size and long streak milestones with deterministic payout logic in Torque SQL.",
+    field: "bridgedAmount, streakDays",
+  },
+  {
+    title: "Retention analytics",
+    tone: "slate",
+    detail:
+      "Track conversion after bridge and monitor drop-off windows to tune campaigns and epoch cadence.",
+    field: "sourceChain, destChain, balance",
+  },
+] as const;
+
 export function HowItWorksContent() {
   return (
     <>
-      <h1 className="inline-flex flex-wrap items-center gap-1 text-3xl font-semibold tracking-tight text-white">
-        How it works
-        <Hint title="End-to-end loop">
-          BridgeHold is the <strong className="text-zinc-200">event spine</strong>: bridge in, prove holds with daily
-          snapshots, let Torque campaigns read the same custom events you emit from this app or your production worker.
-        </Hint>
-      </h1>
-      <p className="mt-3 max-w-2xl text-sm text-zinc-400 sm:text-base">
-        Three moving parts: your product records bridges, a cron or indexer snapshots balances, and Torque scores
-        participants for incentives.
-      </p>
-      <ol className="mt-10 grid gap-4 sm:grid-cols-3">
+      <section className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm sm:p-10">
+        <p className="font-mono text-xs tracking-[0.16em] text-slate-500">SYSTEM OVERVIEW</p>
+        <h1 className="mt-3 inline-flex flex-wrap items-center gap-1 text-3xl font-semibold tracking-tight text-slate-900">
+          How it works
+          <Hint title="End-to-end loop">
+            BridgeHold emits bridge and snapshot events; Torque consumes those events to power incentives with SQL.
+          </Hint>
+        </h1>
+        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base">
+          Your app records the bridge, your worker posts daily hold snapshots, and Torque campaign logic decides rewards.
+          Same payload shape in demo and production.
+        </p>
+        <p className="mt-4 text-sm text-slate-600">
+          <Link href="/use-cases" className="font-semibold text-teal-700 hover:underline">
+            Five strategic use cases
+          </Link>{" "}
+          - sticky TVL, anti-dump rules, cohort &amp; route growth, consumer seasons, and distributor loops - all map to these
+          same events.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-2 text-xs">
+          <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 font-medium text-amber-800">
+            Bridge event
+          </span>
+          <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 font-medium text-orange-800">
+            Daily snapshot
+          </span>
+          <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 font-medium text-cyan-800">
+            Torque campaigns
+          </span>
+        </div>
+      </section>
+
+      <ol className="mt-8 grid gap-4 lg:grid-cols-3">
         {steps.map((item) => (
-          <li
-            key={item.step}
-            className="relative rounded-2xl border border-zinc-700/80 bg-slate-900/70 p-5 pt-8"
-          >
-            <span className="absolute left-5 top-4 font-mono text-xs font-medium text-cyan-400">
-              {item.step}
+          <li key={item.step} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-xs font-semibold text-slate-600">
+              STEP {item.step}
             </span>
-            <h2 className="text-base font-medium text-white">{item.title}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-400">{item.body}</p>
+            <h2 className="mt-3 text-lg font-semibold text-slate-900">{item.title}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.body}</p>
           </li>
         ))}
       </ol>
 
-      <section className="mt-14 rounded-2xl border border-teal-900/40 bg-teal-950/15 p-6 sm:p-8">
-        <h2 className="inline-flex flex-wrap items-center gap-1 text-xl font-semibold text-teal-200">
+      <section className="mt-12 rounded-3xl border border-slate-200 bg-slate-50 p-6 sm:p-8">
+        <h2 className="inline-flex items-center gap-1 text-xl font-semibold text-slate-900">
           Mapped to Torque primitives
           <Hint title="Why this mapping">
-            Each primitive in Torque (leaderboard, raffle, rebate) needs trustworthy signals. Snapshot events carry
-            booleans and counters your SQL can filter — no new on-chain contracts required for the integration.
+            Reliable recurring fields let you build fair leaderboards, raffles, and reward logic without contract changes.
           </Hint>
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-          Torque is the programmable retention layer: leaderboards, rebates, raffles, and gifts. BridgeHold gives each
-          primitive <strong className="text-zinc-200">clean, recurring signals</strong> so campaigns optimize on real
-          hold behavior instead of one-off transfers.
+        <p className="mt-2 max-w-3xl text-sm text-slate-600">
+          Use the same stream of custom events to run multiple campaign types by changing only SQL selection logic.
         </p>
-        <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-          <li className="rounded-xl border border-zinc-700/60 bg-slate-900/50 p-4">
-            <h3 className="font-semibold text-white">Leaderboard</h3>
-            <p className="mt-2 text-sm text-zinc-400">
-              Rank on <span className="font-mono text-cyan-300">streakDays</span> or count of qualifying snapshots —
-              aligns with Torque competition primitives and sybil-aware scoring.
-            </p>
-          </li>
-          <li className="rounded-xl border border-zinc-700/60 bg-slate-900/50 p-4">
-            <h3 className="font-semibold text-white">Raffle</h3>
-            <p className="mt-2 text-sm text-zinc-400">
-              Tickets from daily <span className="font-mono text-cyan-300">meetsThreshold</span> so smaller holders who
-              stay consistent still earn odds — not just whales.
-            </p>
-          </li>
-          <li className="rounded-xl border border-zinc-700/60 bg-slate-900/50 p-4">
-            <h3 className="font-semibold text-white">Rebate / gift</h3>
-            <p className="mt-2 text-sm text-zinc-400">
-              Payout on bridge size or streak milestones using <span className="font-mono text-cyan-300">bridgedAmount</span>{" "}
-              and snapshot streak fields.
-            </p>
-          </li>
-          <li className="rounded-xl border border-zinc-700/60 bg-slate-900/50 p-4">
-            <h3 className="font-semibold text-white">Velocity &amp; ROI</h3>
-            <p className="mt-2 text-sm text-zinc-400">
-              Torque’s analytics stack (built for teams moving billions in volume) lets you tune epochs as retention data
-              flows in — BridgeHold is the event spine for that loop.
-            </p>
-          </li>
-        </ul>
-      </section>
-
-      <section className="mt-14">
-        <h2 className="text-xl font-semibold text-white">Example campaign concepts</h2>
-        <p className="mt-2 text-sm text-zinc-400">
-          Pair these patterns with Torque incentives — each line is a concise campaign concept you can implement in SQL.
-        </p>
-        <ul className="mt-6 space-y-3 text-sm text-zinc-300">
-          <li>
-            <strong className="text-white">“Sticky SOL” week</strong> — Bridge from any preset route (nine chains in the
-            examples grid); daily snapshots mint raffle tickets only when balance stays above your protocol’s min.
-          </li>
-          <li>
-            <strong className="text-white">VIP vs community rails</strong> — High bridgedAmount opens leaderboard tier A;
-            micro bridges stay in tier B with separate prize pools (inclusive growth story).
-          </li>
-          <li>
-            <strong className="text-white">Decay-aware rebates</strong> — Users with slow balance bleed still get partial
-            credit until they fall below min — mirrors real fee drag without harsh binary loss.
-          </li>
-          <li>
-            <strong className="text-white">Twin-wallet comparison</strong> — Run the live demo twin script to register
-            two participants, bridge different notionals, and advance days in parallel so the board shows two streaks.
-          </li>
-          <li>
-            <strong className="text-white">Leaderboard seed</strong> — The fourth live-demo script registers three
-            personas and advances one day each to populate a multi-wallet board in one pass.
-          </li>
-          <li>
-            <strong className="text-white">Preset flow shortcut</strong> — In the simulator, “Run preset flow” chains
-            register → bridge → three ticks without stepping through each control manually.
-          </li>
+        <ul className="mt-6 grid gap-4 md:grid-cols-2">
+          {primitives.map((p) => (
+            <li key={p.title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-semibold text-slate-900">{p.title}</h3>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                    p.tone === "amber"
+                      ? "bg-amber-50 text-amber-800 ring-1 ring-amber-300"
+                      : p.tone === "orange"
+                        ? "bg-orange-50 text-orange-800 ring-1 ring-orange-300"
+                        : p.tone === "cyan"
+                          ? "bg-cyan-50 text-cyan-800 ring-1 ring-cyan-300"
+                          : "bg-slate-100 text-slate-700 ring-1 ring-slate-300"
+                  }`}
+                >
+                  {p.field}
+                </span>
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">{p.detail}</p>
+            </li>
+          ))}
         </ul>
       </section>
     </>

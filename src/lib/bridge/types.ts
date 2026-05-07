@@ -40,6 +40,16 @@ export type LeaderboardStats = {
   uniqueRoutes: number;
   topRoute: string | null;
   topRouteCount: number;
+  /** Wallets whose current simulated balance meets min-hold. */
+  walletsMeetingMin: number;
+  /** Share of bridged wallets currently at or above min-hold (0–100, one decimal). */
+  pctMeetingMin: number;
+  /** Sum of all snapshot rows stored (one per advanced day per wallet). */
+  totalSnapshotTicks: number;
+  /** Mean bridged notional per bridged wallet (rounded sim USDC). */
+  avgBridgedPerWallet: number;
+  /** Mean qualifying snapshot days per wallet (one decimal). */
+  avgQualifyingDaysPerWallet: number;
 };
 
 export type Scenario = {

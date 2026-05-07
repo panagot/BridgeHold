@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
-  { href: "/how-it-works", label: "How it works", title: "Bridge → snapshot → Torque campaign loop" },
-  { href: "/examples", label: "Examples", title: "Nine presets + ten Torque playbooks" },
-  { href: "/demo", label: "Live demo", title: "Automated scripts hitting the same APIs as the simulator" },
+  { href: "/use-cases", label: "Use cases", title: "Sticky TVL, anti-dump, cohorts, consumer, distributors" },
+  { href: "/how-it-works", label: "How it works", title: "Bridge events, daily snapshots, Torque campaigns" },
+  { href: "/examples", label: "Examples", title: "Nine presets plus ten Torque playbooks" },
+  { href: "/demo", label: "Live demo", title: "Automated scripts using the same APIs as the simulator" },
   { href: "/simulator", label: "Simulator", title: "Manual controls, presets, batch ticks, ingest" },
   { href: "/leaderboard", label: "Leaderboard", title: "Rankings and aggregate stats for bridged wallets" },
 ] as const;
@@ -15,7 +16,7 @@ export function Navbar() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#070b12]/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0f1a36]">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="group flex items-center gap-2 font-semibold tracking-tight text-white">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-teal-600 text-sm font-bold text-black shadow-[0_0_20px_-4px_rgba(34,211,238,0.7)]">

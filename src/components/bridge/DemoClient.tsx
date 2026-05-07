@@ -11,6 +11,7 @@ import {
   shortAddr,
 } from "@/lib/bridge/constants";
 import { apiAdvance, apiBalance, apiBridge, apiRegister } from "@/lib/bridge/api";
+import { torqueOutcomeSummary } from "@/lib/torque-messages";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -88,44 +89,58 @@ export function DemoClient() {
 
     pushSimLog("━━ Classic: bridge → hold → break streak → recover ━━");
     await tick();
-    pushSimLog(`Register ${shortAddr(w)} (min ${mh})`);
-    await apiRegister(w, mh);
+    pushSimLog(`POST /api/participant minHold=${mh} wallet=${shortAddr(w)}`);
+    const reg = await apiRegister(w, mh);
+    pushSimLog(
+      `  → registered lastProcessedDay=${reg.lastProcessedDay} snapshots=${reg.snapshots.length} balance=${reg.currentBalance}`,
+    );
     await sleep(350);
 
     await tick();
-    pushSimLog(`Bridge ${amt} ${src} → ${dst}`);
-    await apiBridge(w, amt, src, dst, mh);
+    pushSimLog(`POST /api/bridge amount=${amt} ${src}→${dst} wallet=${shortAddr(w)}`);
+    const br0 = await apiBridge(w, amt, src, dst, mh);
+    pushSimLog(
+      `  → balance=${br0.participant.currentBalance} bridged=${br0.participant.bridgedAmount} · ${torqueOutcomeSummary(br0.participant.bridgeTorque, "bridge")}`,
+    );
     await sleep(400);
 
     for (let i = 0; i < 4; i++) {
       await tick();
-      pushSimLog(`Tick ${i + 1}/4 (no decay)`);
+      pushSimLog(`POST /api/advance-day decayPercent=0 (${i + 1}/4)`);
       const adv = await apiAdvance(w, 0);
-      pushSimLog(`  → bal ${adv.snapshot.balance}, streak ${adv.snapshot.streakAfter}`);
+      pushSimLog(
+        `  → day=${adv.snapshot.dayIndex} bal=${adv.snapshot.balance} meets=${adv.snapshot.meetsThreshold} streak=${adv.snapshot.streakAfter} · ${torqueOutcomeSummary(adv.snapshot.torque, "snapshot")}`,
+      );
       await sleep(320);
     }
 
     await tick();
-    pushSimLog("Sell down → balance 70 (below min)");
-    await apiBalance(w, 70);
+    pushSimLog("POST /api/balance 70 (simulate sell / withdraw below min)");
+    const balDump = await apiBalance(w, 70);
+    pushSimLog(`  → balance=${balDump.currentBalance} minHold=${balDump.minHold}`);
     await sleep(300);
 
     await tick();
-    pushSimLog("Tick after dump (streak should reset)");
+    pushSimLog("POST /api/advance-day decayPercent=0 (expect streak reset)");
     const br = await apiAdvance(w, 0);
-    pushSimLog(`  → streak ${br.snapshot.streakAfter}, meets ${br.snapshot.meetsThreshold}`);
+    pushSimLog(
+      `  → day=${br.snapshot.dayIndex} streak=${br.snapshot.streakAfter} meets=${br.snapshot.meetsThreshold} · ${torqueOutcomeSummary(br.snapshot.torque, "snapshot")}`,
+    );
     await sleep(350);
 
     await tick();
-    pushSimLog("Top up → 450");
-    await apiBalance(w, 450);
+    pushSimLog("POST /api/balance 450 (top up)");
+    const top = await apiBalance(w, 450);
+    pushSimLog(`  → balance=${top.currentBalance}`);
     await sleep(280);
 
     for (let j = 0; j < 2; j++) {
       await tick();
-      pushSimLog(`Recovery ${j + 1}/2`);
+      pushSimLog(`POST /api/advance-day recovery ${j + 1}/2`);
       const adv2 = await apiAdvance(w, 0);
-      pushSimLog(`  → streak ${adv2.snapshot.streakAfter}`);
+      pushSimLog(
+        `  → streak=${adv2.snapshot.streakAfter} · ${torqueOutcomeSummary(adv2.snapshot.torque, "snapshot")}`,
+      );
       await sleep(300);
     }
     await tick();
@@ -146,21 +161,24 @@ export function DemoClient() {
 
     pushSimLog("━━ Decay week: 7 days @ 4% balance decay before each snapshot ━━");
     await tick();
+    pushSimLog(`POST /api/participant minHold=${mh} wallet=${shortAddr(w)}`);
     await apiRegister(w, mh);
-    pushSimLog(`Register ${shortAddr(w)}, min ${mh}`);
     await sleep(300);
 
     await tick();
-    await apiBridge(w, amt, "Base", "Solana", mh);
-    pushSimLog(`Bridge ${amt} Base → Solana`);
+    pushSimLog(`POST /api/bridge amount=${amt} Base→Solana`);
+    const brd = await apiBridge(w, amt, "Base", "Solana", mh);
+    pushSimLog(
+      `  → balance=${brd.participant.currentBalance} · ${torqueOutcomeSummary(brd.participant.bridgeTorque, "bridge")}`,
+    );
     await sleep(350);
 
     for (let d = 0; d < 7; d++) {
       await tick();
-      pushSimLog(`Day ${d + 1}/7 + 4% decay`);
+      pushSimLog(`POST /api/advance-day decayPercent=4 day ${d + 1}/7`);
       const adv = await apiAdvance(w, 4);
       pushSimLog(
-        `  → bal ${adv.snapshot.balance}, meets ${adv.snapshot.meetsThreshold}, streak ${adv.snapshot.streakAfter}`,
+        `  → day=${adv.snapshot.dayIndex} bal=${adv.snapshot.balance} meets=${adv.snapshot.meetsThreshold} streak=${adv.snapshot.streakAfter} · ${torqueOutcomeSummary(adv.snapshot.torque, "snapshot")}`,
       );
       await sleep(340);
     }
@@ -183,22 +201,31 @@ export function DemoClient() {
     const minB = 50;
     pushSimLog("━━ Twin wallets: whale-ish vs retail-ish parallel paths ━━");
     await tick();
+    pushSimLog(`POST /api/participant ×2 (A ${shortAddr(a)}, B ${shortAddr(b)})`);
     await apiRegister(a, minA);
     await apiRegister(b, minB);
-    pushSimLog(`Register A ${shortAddr(a)} & B ${shortAddr(b)}`);
     await sleep(350);
 
     await tick();
-    await apiBridge(a, 5000, "Ethereum", "Solana", minA);
-    await apiBridge(b, 220, "Base", "Solana", minB);
-    pushSimLog("Bridge A: 5k Eth→Sol · Bridge B: 220 Base→Sol");
+    pushSimLog("POST /api/bridge A: 5000 Eth→Sol · B: 220 Base→Sol");
+    const [ba, bb] = await Promise.all([
+      apiBridge(a, 5000, "Ethereum", "Solana", minA),
+      apiBridge(b, 220, "Base", "Solana", minB),
+    ]);
+    pushSimLog(`  A: ${torqueOutcomeSummary(ba.participant.bridgeTorque, "bridge")}`);
+    pushSimLog(`  B: ${torqueOutcomeSummary(bb.participant.bridgeTorque, "bridge")}`);
     await sleep(400);
 
     for (let d = 0; d < 3; d++) {
       await tick();
-      pushSimLog(`Parallel tick ${d + 1}/3`);
+      pushSimLog(`POST /api/advance-day ×2 in parallel (${d + 1}/3)`);
       const [ra, rb] = await Promise.all([apiAdvance(a, 0), apiAdvance(b, 0)]);
-      pushSimLog(`  A: streak ${ra.snapshot.streakAfter} · B: streak ${rb.snapshot.streakAfter}`);
+      pushSimLog(
+        `  A day=${ra.snapshot.dayIndex} streak=${ra.snapshot.streakAfter} · ${torqueOutcomeSummary(ra.snapshot.torque, "snapshot")}`,
+      );
+      pushSimLog(
+        `  B day=${rb.snapshot.dayIndex} streak=${rb.snapshot.streakAfter} · ${torqueOutcomeSummary(rb.snapshot.torque, "snapshot")}`,
+      );
       await sleep(380);
     }
     await tick();
@@ -220,20 +247,21 @@ export function DemoClient() {
 
     for (const s of trio) {
       await tick();
-      pushSimLog(`▸ ${s.title} — register ${shortAddr(s.wallet)}`);
+      pushSimLog(`▸ ${s.title} POST /api/participant wallet=${shortAddr(s.wallet)} minHold=${s.minHold}`);
       await apiRegister(s.wallet, s.minHold);
       await sleep(280);
 
       await tick();
-      pushSimLog(`  Bridge ${s.amount} ${s.sourceChain} → ${s.destChain}`);
-      await apiBridge(s.wallet, s.amount, s.sourceChain, s.destChain, s.minHold);
+      pushSimLog(`  POST /api/bridge ${s.amount} ${s.sourceChain}→${s.destChain}`);
+      const brs = await apiBridge(s.wallet, s.amount, s.sourceChain, s.destChain, s.minHold);
+      pushSimLog(`  ${torqueOutcomeSummary(brs.participant.bridgeTorque, "bridge")}`);
       await sleep(300);
 
       await tick();
-      pushSimLog(`  Tick + ${s.decay}% decay`);
+      pushSimLog(`  POST /api/advance-day decayPercent=${s.decay}`);
       const adv = await apiAdvance(s.wallet, s.decay);
       pushSimLog(
-        `  → bal ${adv.snapshot.balance}, streak ${adv.snapshot.streakAfter}, meets ${String(adv.snapshot.meetsThreshold)}`,
+        `  → day=${adv.snapshot.dayIndex} bal=${adv.snapshot.balance} streak=${adv.snapshot.streakAfter} meets=${String(adv.snapshot.meetsThreshold)} · ${torqueOutcomeSummary(adv.snapshot.torque, "snapshot")}`,
       );
       await sleep(320);
     }
@@ -267,48 +295,66 @@ export function DemoClient() {
   };
 
   const pct = progress.total > 0 ? Math.round((progress.step / progress.total) * 100) : 0;
+  const activeScript = SCRIPTS.find((x) => x.id === script);
 
   return (
     <>
-      <h1 className="inline-flex items-center gap-1 text-3xl font-semibold tracking-tight text-white">
-        Live demo simulation
-        <Hint title="What this is">
-          Fully automated calls to the same Next.js API routes as the simulator.           With <code className="text-cyan-300">TORQUE_INGEST_API_KEY</code> set, each step can emit the same Torque
-          custom events as production. Use the simulator to inspect snapshots and leaderboard rows afterward.
-        </Hint>
-      </h1>
-      <p className="mt-3 max-w-3xl text-sm text-zinc-400 sm:text-base">
-        Pick a script, then <strong className="font-medium text-zinc-300">Run</strong>. Same payloads as manual simulator
-        actions — suitable for repeatable demos and QA.
-      </p>
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
+        <h1 className="inline-flex items-center gap-1 text-3xl font-semibold tracking-tight text-slate-900">
+          Live demo simulation
+          <Hint title="What this is">
+            Fully automated calls to the same Next.js API routes as the simulator. With{" "}
+            <code className="text-cyan-700">TORQUE_INGEST_API_KEY</code> set, each step emits the same Torque custom
+            events as production.
+          </Hint>
+        </h1>
+        <p className="mt-3 max-w-3xl text-sm text-slate-600 sm:text-base">
+          Pick a script, then run. This flow is deterministic and suitable for repeatable demos, QA checks, and
+          regression passes.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs text-slate-600">
+            Active script: <span className="font-semibold text-slate-900">{activeScript?.label}</span>
+          </span>
+          <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs text-slate-600">
+            Steps: <span className="font-mono text-slate-900">{progress.total || "—"}</span>
+          </span>
+          <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs text-slate-600">
+            Status:{" "}
+            <span className={simRunning ? "font-semibold text-cyan-700" : "font-semibold text-emerald-700"}>
+              {simRunning ? "Running" : "Idle"}
+            </span>
+          </span>
+        </div>
+      </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {SCRIPTS.map((s) => (
           <button
             key={s.id}
             type="button"
             disabled={simRunning}
             onClick={() => setScript(s.id)}
-            className={`rounded-xl border-2 p-4 text-left transition ${
+            className={`rounded-xl border p-4 text-left transition ${
               script === s.id
-                ? "border-teal-500 bg-teal-950/40 ring-1 ring-teal-500/30"
-                : "border-zinc-700 bg-slate-900/60 hover:border-zinc-600"
+                ? "border-teal-400 bg-teal-50 ring-1 ring-teal-200"
+                : "border-slate-200 bg-white hover:border-slate-300"
             } disabled:opacity-50`}
           >
             <span className="flex items-start justify-between gap-1">
-              <span className="font-semibold text-white">{s.label}</span>
+              <span className="font-semibold text-slate-900">{s.label}</span>
               <Hint title={`${s.label} script`}>
                 <span className="font-normal">{s.hint}</span>
               </Hint>
             </span>
-            <span className="mt-2 block text-xs leading-relaxed text-zinc-400">{s.blurb}</span>
+            <span className="mt-2 block text-xs leading-relaxed text-slate-600">{s.blurb}</span>
           </button>
         ))}
       </div>
 
       {progress.total > 0 ? (
         <div className="mt-6">
-          <div className="mb-1 flex justify-between text-xs text-zinc-500">
+          <div className="mb-1 flex justify-between text-xs text-slate-500">
             <span className="inline-flex items-center gap-1">
               Progress
               <Hint title="Progress bar">Steps mirror API calls (register, bridge, tick, balance edits). Abort finishes the current step safely.</Hint>
@@ -317,7 +363,7 @@ export function DemoClient() {
               {progress.step} / {progress.total} ({pct}%)
             </span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
+          <div className="h-2 overflow-hidden rounded-full bg-slate-200">
             <div
               className="h-full rounded-full bg-gradient-to-r from-teal-600 to-cyan-500 transition-all duration-300"
               style={{ width: `${pct}%` }}
@@ -326,9 +372,9 @@ export function DemoClient() {
         </div>
       ) : null}
 
-      <div className="mt-6 rounded-2xl border border-zinc-700/80 bg-zinc-950 p-4 font-mono text-xs shadow-inner">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-700/80 pb-3">
-          <span className="inline-flex items-center gap-1 font-medium text-zinc-400">
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 font-mono text-xs shadow-sm">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+          <span className="inline-flex items-center gap-1 font-medium text-slate-500">
             demo.log
             <Hint title="Event log">Timestamped API steps for auditing what ran in order.</Hint>
           </span>
@@ -337,15 +383,15 @@ export function DemoClient() {
               type="button"
               disabled={simRunning}
               onClick={() => void runLiveDemo()}
-              className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-45"
+              className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-500 disabled:opacity-45"
             >
-              {simRunning ? "Running…" : `Run “${SCRIPTS.find((x) => x.id === script)?.label}”`}
+              {simRunning ? "Running…" : `Run “${activeScript?.label}”`}
             </button>
             <button
               type="button"
               disabled={!simRunning}
               onClick={stopSimulation}
-              className="rounded-lg border-2 border-zinc-500 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-100 disabled:opacity-40"
+              className="rounded-lg border-2 border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 disabled:opacity-40"
             >
               Stop
             </button>
@@ -353,21 +399,21 @@ export function DemoClient() {
               type="button"
               disabled={simRunning}
               onClick={clearLog}
-              className="rounded-lg border border-zinc-600 bg-zinc-900/80 px-3 py-1.5 text-xs text-zinc-300 disabled:opacity-40"
+              className="rounded-lg border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs text-slate-600 disabled:opacity-40"
             >
               Clear log
             </button>
           </div>
         </div>
-        <div className="max-h-[min(28rem,55vh)] overflow-y-auto text-zinc-300">
+        <div className="max-h-[min(28rem,55vh)] overflow-y-auto text-slate-700">
           {simLog.length === 0 ? (
-            <p className="text-zinc-500">Choose a script and hit Run — or switch scripts before running.</p>
+            <p className="text-slate-500">Choose a script and hit Run — or switch scripts before running.</p>
           ) : (
             simLog.map((line, i) => (
               <p
                 key={`${i}-${line.slice(0, 28)}`}
                 className={`whitespace-pre-wrap break-all py-0.5 ${
-                  line.includes("✓") ? "text-teal-400" : line.includes("━━") ? "text-cyan-500/90" : ""
+                  line.includes("✓") ? "text-teal-700" : line.includes("━━") ? "text-cyan-700" : ""
                 }`}
               >
                 {line}
@@ -378,21 +424,21 @@ export function DemoClient() {
         </div>
       </div>
 
-      <p className="mt-6 text-xs text-zinc-500">
-        Wallets: primary <span className="font-mono text-zinc-400">{shortAddr(DEMO_WALLET)}</span>
+      <p className="mt-6 text-xs text-slate-500">
+        Wallets: primary <span className="font-mono text-slate-600">{shortAddr(DEMO_WALLET)}</span>
         {script === "twin" ? (
           <>
             {" "}
-            · whale <span className="font-mono text-zinc-400">{shortAddr(DEMO_WALLET_TWIN_WHALE)}</span>
+            · whale <span className="font-mono text-slate-600">{shortAddr(DEMO_WALLET_TWIN_WHALE)}</span>
             {" · retail "}
-            <span className="font-mono text-zinc-400">{shortAddr(DEMO_WALLET_TWIN_RETAIL)}</span>
+            <span className="font-mono text-slate-600">{shortAddr(DEMO_WALLET_TWIN_RETAIL)}</span>
           </>
         ) : null}
         {script === "seed" ? (
           <>
             {" "}
             · preset wallets{" "}
-            <span className="font-mono text-zinc-400">
+            <span className="font-mono text-slate-600">
               {shortAddr(SCENARIOS[0].wallet)}, {shortAddr(SCENARIOS[3].wallet)}, {shortAddr(SCENARIOS[5].wallet)}
             </span>
           </>

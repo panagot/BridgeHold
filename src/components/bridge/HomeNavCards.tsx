@@ -2,6 +2,11 @@ import Link from "next/link";
 
 const items = [
   {
+    href: "/use-cases",
+    title: "Use cases",
+    desc: "Five growth narratives: depth, cooling-off, cohorts, seasons, referrals.",
+  },
+  {
     href: "/how-it-works",
     title: "How it works",
     desc: "Bridge events, daily snapshots, and how they feed Torque primitives.",
@@ -9,7 +14,7 @@ const items = [
   {
     href: "/examples",
     title: "Examples",
-    desc: "Nine preset scenarios — L2s, stables, retail, whale, decay, Avalanche, Sui, BNB, and more.",
+    desc: "Nine preset scenarios - L2s, stables, retail, whale, decay, Avalanche, Sui, BNB, and more.",
   },
   {
     href: "/demo",
@@ -30,23 +35,26 @@ const items = [
 
 export function HomeNavCards() {
   return (
-    <div className="mx-auto max-w-6xl border-t border-zinc-800/80 bg-[#070b12] px-4 py-14 sm:px-6 lg:px-8">
-      <h2 className="text-lg font-semibold text-white">Explore</h2>
-      <p className="mt-1 text-sm text-zinc-400">Each section has its own page.</p>
-      <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {items.map((item) => (
-          <li key={item.href}>
-            <Link
-              href={item.href}
-              className="flex h-full flex-col rounded-2xl border border-zinc-700/80 bg-slate-900/70 p-5 transition hover:border-teal-500/50 hover:bg-slate-900"
-            >
-              <span className="font-semibold text-white">{item.title}</span>
-              <span className="mt-2 text-sm leading-relaxed text-zinc-400">{item.desc}</span>
-              <span className="mt-4 text-sm font-medium text-teal-400">Open →</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <section className="w-full border-t border-slate-200 bg-white">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+        <h2 className="text-lg font-semibold text-slate-900">Explore</h2>
+        <p className="mt-1 text-sm text-slate-600">Each section has its own page.</p>
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-teal-300 hover:bg-slate-50"
+              >
+                <span className="font-semibold text-slate-900">{item.title}</span>
+                <span className="mt-2 text-sm leading-relaxed text-slate-600">{item.desc}</span>
+                <span className="mt-4 text-sm font-medium text-teal-700">Open -&gt;</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
+

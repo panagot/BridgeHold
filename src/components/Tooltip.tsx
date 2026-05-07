@@ -8,7 +8,7 @@ type HintProps = {
   title?: string;
 };
 
-/** Circular "i" glyph (outline) — scales with text line height. */
+/** Circular "i" glyph (outline) â€” scales with text line height. */
 function InfoCircleGlyph({ className }: { className?: string }) {
   return (
     <svg
@@ -49,7 +49,7 @@ export function Hint({ children, title = "Show hint" }: HintProps) {
         type="button"
         title={title}
         onClick={(e) => e.stopPropagation()}
-        className="inline-flex size-[15px] shrink-0 items-center justify-center rounded-full text-zinc-500/85 outline-none transition-colors hover:bg-white/[0.06] hover:text-teal-400/95 focus-visible:ring-1 focus-visible:ring-teal-500/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#070b12] active:scale-95 sm:size-4"
+        className="inline-flex size-[15px] shrink-0 items-center justify-center rounded-full text-zinc-500/85 outline-none transition-colors hover:bg-white/[0.06] hover:text-teal-400/95 focus-visible:ring-1 focus-visible:ring-teal-500/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d1730] active:scale-95 sm:size-4"
         aria-label={title}
       >
         <InfoCircleGlyph className="size-[13px] sm:size-3.5" />
@@ -67,3 +67,4 @@ export function Hint({ children, title = "Show hint" }: HintProps) {
     </span>
   );
 }
+

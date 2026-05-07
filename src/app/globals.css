@@ -2,12 +2,12 @@
 
 /* App is dark-only: avoid light :root leaking white behind forms (breaks contrast). */
 :root {
-  --background: #070b12;
-  --foreground: #f4f4f5;
-  --card: #0c1220;
-  --card-elevated: #111b2e;
-  --border-subtle: rgba(148, 163, 184, 0.35);
-  --muted: #a1a1aa;
+  --background: #0d1730;
+  --foreground: #f4f7fb;
+  --card: #162444;
+  --card-elevated: #1b2e56;
+  --border-subtle: rgba(148, 163, 184, 0.26);
+  --muted: #aeb8cb;
 }
 
 @theme inline {
@@ -43,3 +43,4 @@ select {
   background: rgba(34, 211, 238, 0.35);
   color: #fff;
 }
+
